@@ -11,10 +11,10 @@ type ServerConfig struct {
 
 type DatabaseConfig struct {
 	ConnectTimeout int    `mapstructure:"connect_timeout"`
-	Host           string `mapstructure:"host"`
-	Port           int    `mapstructure:"port"`
 	User           string `mapstructure:"user"`
 	Password       string `mapstructure:"password"`
+	Host           string `mapstructure:"host"`
+	Port           int    `mapstructure:"port"`
 	DBName         string `mapstructure:"dbname"`
 }
 
@@ -25,10 +25,17 @@ type InitialAdminConfig struct {
 	Email    string `mapstructure:"email"`
 }
 
+type JWTConfig struct {
+	Expiration int    `mapstructure:"expiration"`
+	Secret     string `mapstructure:"secret"`
+}
+
 type Config struct {
+	Environment  string             `mapstructure:"environment"`
 	Server       ServerConfig       `mapstructure:"server"`
 	Database     DatabaseConfig     `mapstructure:"database"`
 	InitialAdmin InitialAdminConfig `mapstructure:"initial_admin"`
+	JWT          JWTConfig          `mapstructure:"jwt"`
 }
 
 func LoadConfig() (*Config, error) {
@@ -49,6 +56,9 @@ func LoadConfig() (*Config, error) {
 		return nil, err
 	}
 	if err := viper.BindEnv("initial_admin.email", "INITIAL_ADMIN_EMAIL"); err != nil {
+		return nil, err
+	}
+	if err := viper.BindEnv("jwt.secret", "JWT_SECRET"); err != nil {
 		return nil, err
 	}
 

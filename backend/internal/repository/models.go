@@ -15,12 +15,12 @@ const (
 )
 
 type User struct {
-	ID           uuid.UUID
-	Username     string
-	PasswordHash string
-	FullName     string
-	Email        string
-	Role         Role
-	CreatedAt    time.Time
-	Version      int
+	ID           uuid.UUID `json:"id"`
+	Username     string    `json:"username"`
+	PasswordHash string    `json:"-"`
+	FullName     string    `json:"full_name"`
+	Email        string    `json:"email"`
+	Role         Role      `json:"role"`
+	CreatedAt    time.Time `json:"created_at"`
+	Version      int       `json:"-"`
 }

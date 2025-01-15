@@ -56,7 +56,11 @@ func main() {
 	}
 
 	// 创建 handler
-	handler := handler.NewHandler(cfg, repo)
+	handler, err := handler.NewHandler(cfg, repo)
+	if err != nil {
+		logger.Error("无法创建 handler", "error", err)
+		os.Exit(1)
+	}
 	handler.RegisterRoutes()
 
 	// 启动 HTTP 服务器

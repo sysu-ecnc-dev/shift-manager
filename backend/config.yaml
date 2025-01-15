@@ -1,14 +1,18 @@
+environment: development # development | production
 server:
   port: 8080
-  read_timeout: 10
-  write_timeout: 10
-  idle_timeout: 60
+  read_timeout: 10 # seconds
+  write_timeout: 10 # seconds
+  idle_timeout: 60 # seconds
 database:
-  connect_timeout: 10
+  connect_timeout: 10 # seconds
   user: postgres
-  dbname: shift_manager_db
   host: localhost
   port: 5432
+  dbname: shift_manager_db
 initial_admin:
   username: admin
   full_name: 管理员
+jwt:
+  expiration: 336 # hours
+

@@ -1,30 +1,49 @@
 package handler
 
 import (
-	"net/http"
-
 	"github.com/go-chi/chi/v5"
+	"github.com/go-playground/locales/zh"
+	ut "github.com/go-playground/universal-translator"
+	"github.com/go-playground/validator/v10"
+	zh_translations "github.com/go-playground/validator/v10/translations/zh"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/config"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/repository"
 )
 
 type Handler struct {
+	validate   *validator.Validate
 	config     *config.Config
-	Mux        *chi.Mux
 	repository *repository.Repository
+	translator ut.Translator
+
+	Mux *chi.Mux
 }
 
-func NewHandler(cfg *config.Config, repo *repository.Repository) *Handler {
-	return &Handler{
-		config:     cfg,
-		Mux:        chi.NewRouter(),
-		repository: repo,
+func NewHandler(cfg *config.Config, repo *repository.Repository) (*Handler, error) {
+	validate := validator.New(validator.WithRequiredStructEnabled())
+	zh := zh.New()
+	uni := ut.New(zh, zh)
+	trans, _ := uni.GetTranslator("zh")
+	if err := zh_translations.RegisterDefaultTranslations(validate, trans); err != nil {
+		return nil, err
 	}
+
+	return &Handler{
+		validate:   validate,
+		config:     cfg,
+		repository: repo,
+		translator: trans,
+
+		Mux: chi.NewRouter(),
+	}, nil
 }
 
 func (h *Handler) RegisterRoutes() {
-	h.Mux.Use(logger)
-	h.Mux.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		_, _ = w.Write([]byte("Hello, World!"))
+	h.Mux.Use(h.logger)
+	h.Mux.Use(h.recoverer)
+
+	h.Mux.Route("/auth", func(r chi.Router) {
+		r.Post("/login", h.Login)
+		r.Post("/logout", h.Logout)
 	})
 }
