@@ -1,0 +1,14 @@
+server:
+  port: 8080
+  read_timeout: 10
+  write_timeout: 10
+  idle_timeout: 60
+database:
+  connect_timeout: 10
+  user: postgres
+  dbname: shift_manager_db
+  host: localhost
+  port: 5432
+initial_admin:
+  username: admin
+  full_name: 管理员
