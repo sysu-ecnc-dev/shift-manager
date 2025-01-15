@@ -1,6 +1,10 @@
 package config
 
-import "github.com/spf13/viper"
+import (
+	"fmt"
+
+	"github.com/spf13/viper"
+)
 
 type ServerConfig struct {
 	Port         string `mapstructure:"port"`
@@ -48,18 +52,20 @@ func LoadConfig() (*Config, error) {
 	}
 
 	// 读取环境变量并绑定到 viper
-	viper.AutomaticEnv()
-	if err := viper.BindEnv("database.password", "DATABASE_PASSWORD"); err != nil {
-		return nil, err
+	var envMap = map[string]string{
+		"database.password":      "DATABASE_PASSWORD",
+		"initial_admin.password": "INITIAL_ADMIN_PASSWORD",
+		"initial_admin.email":    "INITIAL_ADMIN_EMAIL",
+		"jwt.secret":             "JWT_SECRET",
 	}
-	if err := viper.BindEnv("initial_admin.password", "INITIAL_ADMIN_PASSWORD"); err != nil {
-		return nil, err
-	}
-	if err := viper.BindEnv("initial_admin.email", "INITIAL_ADMIN_EMAIL"); err != nil {
-		return nil, err
-	}
-	if err := viper.BindEnv("jwt.secret", "JWT_SECRET"); err != nil {
-		return nil, err
+
+	for k, v := range envMap {
+		if err := viper.BindEnv(k, v); err != nil {
+			return nil, err
+		}
+		if !viper.IsSet(k) {
+			return nil, fmt.Errorf("environment variable %s is not set", v)
+		}
 	}
 
 	// 解析配置

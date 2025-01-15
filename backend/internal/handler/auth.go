@@ -61,7 +61,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 			ExpiresAt: jwt.NewNumericDate(expiration),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			NotBefore: jwt.NewNumericDate(time.Now()),
-			Subject:   user.Username,
+			Subject:   user.ID.String(),
 		},
 	})
 	ss, err := token.SignedString([]byte(h.config.JWT.Secret))

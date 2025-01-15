@@ -21,6 +21,7 @@ type User struct {
 	FullName     string    `json:"full_name"`
 	Email        string    `json:"email"`
 	Role         Role      `json:"role"`
+	Active       bool      `json:"active"`
 	CreatedAt    time.Time `json:"created_at"`
 	Version      int       `json:"-"`
 }

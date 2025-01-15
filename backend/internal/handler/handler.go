@@ -46,4 +46,13 @@ func (h *Handler) RegisterRoutes() {
 		r.Post("/login", h.Login)
 		r.Post("/logout", h.Logout)
 	})
+
+	h.Mux.Group(func(r chi.Router) {
+		r.Use(h.auth)
+		r.Route("/my-info", func(r chi.Router) {
+			r.Use(h.myInfo)
+			r.Get("/", h.GetMyInfo)
+			r.Patch("/password", h.UpdateMyPassword)
+		})
+	})
 }
