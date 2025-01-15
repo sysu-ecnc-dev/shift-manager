@@ -9,9 +9,7 @@ import (
 
 func (r *Repository) GetUserByUsername(ctx context.Context, username string) (*User, error) {
 	query := `
-		SELECT id, username, password_hash, full_name, email, role, active, created_at, version 
-		FROM users 
-		WHERE username = $1
+		SELECT * FROM users WHERE username = $1
 	`
 
 	rows, err := r.dbpool.Query(ctx, query, username)
@@ -29,9 +27,7 @@ func (r *Repository) GetUserByUsername(ctx context.Context, username string) (*U
 
 func (r *Repository) GetUserByID(ctx context.Context, id uuid.UUID) (*User, error) {
 	query := `
-		SELECT id, username, password_hash, full_name, email, role, active, created_at, version 
-		FROM users 
-		WHERE id = $1
+		SELECT * FROM users WHERE id = $1
 	`
 
 	rows, err := r.dbpool.Query(ctx, query, id)
@@ -51,7 +47,7 @@ func (r *Repository) CreateUser(ctx context.Context, user *User) error {
 	query := `
 		INSERT INTO users (username, password_hash, full_name, email, role)
 		VALUES ($1, $2, $3, $4, $5)
-		RETURNING id, username, password_hash, full_name, email, role, created_at, version
+		RETURNING *
 	`
 
 	rows, err := r.dbpool.Query(ctx, query, user.Username, user.PasswordHash, user.FullName, user.Email, user.Role)
@@ -78,7 +74,7 @@ func (r *Repository) UpdateUser(ctx context.Context, user *User) error {
 			active = $5,
 			version = version + 1
 		WHERE id = $6 AND version = $7
-		RETURNING id, username, password_hash, full_name, email, role, active, created_at, version
+		RETURNING *
 	`
 
 	args := []any{
@@ -101,4 +97,22 @@ func (r *Repository) UpdateUser(ctx context.Context, user *User) error {
 	}
 
 	return nil
+}
+
+func (r *Repository) GetAllUsers(ctx context.Context) ([]User, error) {
+	query := `
+		SELECT * FROM users
+	`
+
+	rows, err := r.dbpool.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	users, err := pgx.CollectRows(rows, pgx.RowToStructByName[User])
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }

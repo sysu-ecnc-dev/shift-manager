@@ -34,12 +34,22 @@ type JWTConfig struct {
 	Secret     string `mapstructure:"secret"`
 }
 
+type SeedConfig struct {
+	UserPassword string `mapstructure:"user_password"`
+}
+
+type EmailConfig struct {
+	UserDomain string `mapstructure:"user_domain"`
+}
+
 type Config struct {
 	Environment  string             `mapstructure:"environment"`
 	Server       ServerConfig       `mapstructure:"server"`
 	Database     DatabaseConfig     `mapstructure:"database"`
 	InitialAdmin InitialAdminConfig `mapstructure:"initial_admin"`
 	JWT          JWTConfig          `mapstructure:"jwt"`
+	Seed         SeedConfig         `mapstructure:"seed"`
+	Email        EmailConfig        `mapstructure:"email"`
 }
 
 func LoadConfig() (*Config, error) {
@@ -57,6 +67,7 @@ func LoadConfig() (*Config, error) {
 		"initial_admin.password": "INITIAL_ADMIN_PASSWORD",
 		"initial_admin.email":    "INITIAL_ADMIN_EMAIL",
 		"jwt.secret":             "JWT_SECRET",
+		"seed.user_password":     "SEED_USER_PASSWORD",
 	}
 
 	for k, v := range envMap {

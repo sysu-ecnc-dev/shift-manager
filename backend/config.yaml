@@ -15,4 +15,5 @@ initial_admin:
   full_name: 管理员
 jwt:
   expiration: 336 # hours
-
+email:
+  user_domain: sysu.edu.cn

@@ -54,5 +54,9 @@ func (h *Handler) RegisterRoutes() {
 			r.Get("/", h.GetMyInfo)
 			r.Patch("/password", h.UpdateMyPassword)
 		})
+
+		r.Route("/users", func(r chi.Router) {
+			r.Get("/", h.GetAllUsers)
+		})
 	})
 }
