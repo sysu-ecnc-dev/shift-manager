@@ -1,5 +1,5 @@
 # migration
-DSN = postgres://postgres:${DATABASE_PASSWORD}@localhost:5432/shift_manager_db?sslmode=disable
+DSN = postgres://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_DBNAME}?sslmode=disable
 
 new_migration:
 	migrate create -seq -ext=.sql -dir=./migrations ${name}

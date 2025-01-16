@@ -67,16 +67,13 @@ func main() {
 		} else {
 			cnt := n
 			for i := 0; i < n; i++ {
-				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-				defer cancel()
-
 				user, err := utils.GenerateRandomUser(cfg.Seed.UserPassword, cfg.Email.UserDomain)
 				if err != nil {
 					slog.Error("无法生成随机用户", slog.String("error", err.Error()))
 					continue
 				}
 
-				if err := repo.CreateUser(ctx, user); err != nil {
+				if err := repo.CreateUser(context.Background(), user); err != nil {
 					slog.Error("无法插入用户", slog.String("error", err.Error()))
 					continue
 				}

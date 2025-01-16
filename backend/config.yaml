@@ -16,4 +16,4 @@ initial_admin:
 jwt:
   expiration: 336 # hours
 email:
-  user_domain: sysu.edu.cn
+  user_domain: mail2.sysu.edu.cn
