@@ -6,20 +6,22 @@ import (
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 	zh_translations "github.com/go-playground/validator/v10/translations/zh"
+	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/config"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/repository"
 )
 
 type Handler struct {
-	validate   *validator.Validate
-	config     *config.Config
-	repository *repository.Repository
-	translator ut.Translator
+	validate    *validator.Validate
+	config      *config.Config
+	repository  *repository.Repository
+	translator  ut.Translator
+	mailChannel *amqp.Channel
 
 	Mux *chi.Mux
 }
 
-func NewHandler(cfg *config.Config, repo *repository.Repository) (*Handler, error) {
+func NewHandler(cfg *config.Config, repo *repository.Repository, mailCh *amqp.Channel) (*Handler, error) {
 	validate := validator.New(validator.WithRequiredStructEnabled())
 	zh := zh.New()
 	uni := ut.New(zh, zh)
@@ -29,10 +31,11 @@ func NewHandler(cfg *config.Config, repo *repository.Repository) (*Handler, erro
 	}
 
 	return &Handler{
-		validate:   validate,
-		config:     cfg,
-		repository: repo,
-		translator: trans,
+		validate:    validate,
+		config:      cfg,
+		repository:  repo,
+		translator:  trans,
+		mailChannel: mailCh,
 
 		Mux: chi.NewRouter(),
 	}, nil

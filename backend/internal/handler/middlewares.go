@@ -89,7 +89,10 @@ func (h *Handler) myInfo(next http.Handler) http.Handler {
 			return
 		}
 
-		myInfo, err := h.repository.GetUserByID(r.Context(), sub)
+		ctx, cancel := context.WithTimeout(r.Context(), time.Duration(h.config.Database.QueryTimeout)*time.Second)
+		defer cancel()
+
+		myInfo, err := h.repository.GetUserByID(ctx, sub)
 		if err != nil {
 			switch {
 			case errors.Is(err, pgx.ErrNoRows):
@@ -100,7 +103,7 @@ func (h *Handler) myInfo(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), MyInfoCtx, myInfo)
+		ctx = context.WithValue(r.Context(), MyInfoCtx, myInfo)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

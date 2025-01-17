@@ -3,13 +3,26 @@ services:
     image: postgres:17-alpine
     container_name: postgres
     ports:
-      - "5432:5432"
+      - "${DATABASE_PORT}:5432"
     environment:
       - POSTGRES_USER=${DATABASE_USER}
       - POSTGRES_DB=${DATABASE_DBNAME}
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+  
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    container_name: rabbitmq
+    ports:
+      - "${RABBITMQ_PORT}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT}:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
 
 volumes:
   postgres_data:
+  rabbitmq_data:

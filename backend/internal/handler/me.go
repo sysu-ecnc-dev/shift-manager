@@ -1,8 +1,10 @@
 package handler
 
 import (
+	"context"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/repository"
@@ -44,7 +46,10 @@ func (h *Handler) UpdateMyPassword(w http.ResponseWriter, r *http.Request) {
 
 	myInfo.PasswordHash = string(hashedPassword)
 
-	if err := h.repository.UpdateUser(r.Context(), myInfo); err != nil {
+	ctx, cancel := context.WithTimeout(r.Context(), time.Duration(h.config.Database.QueryTimeout)*time.Second)
+	defer cancel()
+
+	if err := h.repository.UpdateUser(ctx, myInfo); err != nil {
 		switch {
 		case errors.Is(err, pgx.ErrNoRows):
 			h.errorResponse(w, r, "更新密码失败，请重试")

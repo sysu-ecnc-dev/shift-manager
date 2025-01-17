@@ -1,9 +1,16 @@
 package handler
 
-import "net/http"
+import (
+	"context"
+	"net/http"
+	"time"
+)
 
 func (h *Handler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
-	users, err := h.repository.GetAllUsers(r.Context())
+	ctx, cancel := context.WithTimeout(r.Context(), time.Duration(h.config.Database.QueryTimeout)*time.Second)
+	defer cancel()
+
+	users, err := h.repository.GetAllUsers(ctx)
 	if err != nil {
 		h.internalServerError(w, r, err)
 		return

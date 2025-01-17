@@ -8,19 +8,17 @@ import (
 )
 
 type ServerConfig struct {
-	Port         string
-	ReadTimeout  int
-	WriteTimeout int
-	IdleTimeout  int
+	Port            string
+	ReadTimeout     int
+	WriteTimeout    int
+	IdleTimeout     int
+	ShutdownTimeout int
 }
 
 type DatabaseConfig struct {
-	User           string
-	Password       string
-	Host           string
-	Port           int
-	DBName         string
+	DSN            string
 	ConnectTimeout int
+	QueryTimeout   int
 }
 
 type InitialAdminConfig struct {
@@ -39,8 +37,22 @@ type SeedConfig struct {
 	UserPassword string
 }
 
+type SMTPConfig struct {
+	Username    string
+	Password    string
+	Host        string
+	Port        int
+	DialTimeout int
+}
+
 type EmailConfig struct {
 	UserDomain string
+	SMTP       SMTPConfig
+}
+
+type RabbitMQConfig struct {
+	DSN            string
+	PublishTimeout int
 }
 
 type Config struct {
@@ -51,6 +63,7 @@ type Config struct {
 	JWT          JWTConfig
 	Seed         SeedConfig
 	Email        EmailConfig
+	RabbitMQ     RabbitMQConfig
 }
 
 func LoadConfig() (*Config, error) {
@@ -81,29 +94,21 @@ func LoadConfig() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	cfg.Server.ShutdownTimeout, err = getEnvAsInt("SERVER_SHUTDOWN_TIMEOUT")
+	if err != nil {
+		return nil, err
+	}
 
 	// database
-	cfg.Database.User, err = getEnvAsString("DATABASE_USER")
-	if err != nil {
-		return nil, err
-	}
-	cfg.Database.Password, err = getEnvAsString("DATABASE_PASSWORD")
-	if err != nil {
-		return nil, err
-	}
-	cfg.Database.Host, err = getEnvAsString("DATABASE_HOST")
-	if err != nil {
-		return nil, err
-	}
-	cfg.Database.Port, err = getEnvAsInt("DATABASE_PORT")
-	if err != nil {
-		return nil, err
-	}
-	cfg.Database.DBName, err = getEnvAsString("DATABASE_DBNAME")
+	cfg.Database.DSN, err = getEnvAsString("DATABASE_DSN")
 	if err != nil {
 		return nil, err
 	}
 	cfg.Database.ConnectTimeout, err = getEnvAsInt("DATABASE_CONNECT_TIMEOUT")
+	if err != nil {
+		return nil, err
+	}
+	cfg.Database.QueryTimeout, err = getEnvAsInt("DATABASE_QUERY_TIMEOUT")
 	if err != nil {
 		return nil, err
 	}
@@ -144,6 +149,36 @@ func LoadConfig() (*Config, error) {
 
 	// email
 	cfg.Email.UserDomain, err = getEnvAsString("EMAIL_USER_DOMAIN")
+	if err != nil {
+		return nil, err
+	}
+	cfg.Email.SMTP.Username, err = getEnvAsString("EMAIL_SMTP_USERNAME")
+	if err != nil {
+		return nil, err
+	}
+	cfg.Email.SMTP.Password, err = getEnvAsString("EMAIL_SMTP_PASSWORD")
+	if err != nil {
+		return nil, err
+	}
+	cfg.Email.SMTP.Host, err = getEnvAsString("EMAIL_SMTP_HOST")
+	if err != nil {
+		return nil, err
+	}
+	cfg.Email.SMTP.Port, err = getEnvAsInt("EMAIL_SMTP_PORT")
+	if err != nil {
+		return nil, err
+	}
+	cfg.Email.SMTP.DialTimeout, err = getEnvAsInt("EMAIL_SMTP_DIAL_TIMEOUT")
+	if err != nil {
+		return nil, err
+	}
+
+	// rabbitmq
+	cfg.RabbitMQ.DSN, err = getEnvAsString("RABBITMQ_DSN")
+	if err != nil {
+		return nil, err
+	}
+	cfg.RabbitMQ.PublishTimeout, err = getEnvAsInt("RABBITMQ_PUBLISH_TIMEOUT")
 	if err != nil {
 		return nil, err
 	}

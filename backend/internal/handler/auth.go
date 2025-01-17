@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"time"
@@ -31,7 +32,10 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 验证用户名和密码
-	user, err := h.repository.GetUserByUsername(r.Context(), req.Username)
+	ctx, cancel := context.WithTimeout(r.Context(), time.Duration(h.config.Database.QueryTimeout)*time.Second)
+	defer cancel()
+
+	user, err := h.repository.GetUserByUsername(ctx, req.Username)
 	if err != nil {
 		switch {
 		case errors.Is(err, pgx.ErrNoRows):

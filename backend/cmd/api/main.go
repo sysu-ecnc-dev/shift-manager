@@ -6,9 +6,12 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/config"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/handler"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/repository"
@@ -22,29 +25,23 @@ func main() {
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		logger.Error("无法加载配置文件", "error", err)
-		os.Exit(1)
+		return
 	}
 
 	// 创建数据库连接池
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.Database.ConnectTimeout)*time.Second)
 	defer cancel()
 
-	dbpool, err := pgxpool.New(ctx, fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
-		cfg.Database.User,
-		cfg.Database.Password,
-		cfg.Database.Host,
-		cfg.Database.Port,
-		cfg.Database.DBName,
-	))
+	dbpool, err := pgxpool.New(ctx, "")
 	if err != nil {
 		logger.Error("无法创建数据库连接池", "error", err)
-		os.Exit(1)
-	}
-	if err := dbpool.Ping(ctx); err != nil {
-		logger.Error("无法连接到数据库", "error", err)
-		os.Exit(1)
+		return
 	}
 	defer dbpool.Close()
+	if err := dbpool.Ping(ctx); err != nil {
+		logger.Error("无法连接到数据库", "error", err)
+		return
+	}
 
 	// 创建 repository
 	repo := repository.NewRepository(dbpool)
@@ -52,14 +49,44 @@ func main() {
 	// 确保数据库中存在初始管理员
 	if err := utils.EnsureAdminExists(cfg, repo); err != nil {
 		logger.Error("无法确保初始管理员存在", "error", err)
-		os.Exit(1)
+		return
+	}
+
+	// 连接 rabbitmq
+	conn, err := amqp.Dial(cfg.RabbitMQ.DSN)
+	if err != nil {
+		logger.Error("无法连接到 rabbitmq", "error", err)
+		return
+	}
+	defer conn.Close()
+
+	// 建立通道
+	ch, err := conn.Channel()
+	if err != nil {
+		logger.Error("无法建立通道", "error", err)
+		return
+	}
+	defer ch.Close()
+
+	// 声明队列
+	_, err = ch.QueueDeclare(
+		"email_queue",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		logger.Error("无法声明队列", "error", err)
+		return
 	}
 
 	// 创建 handler
-	handler, err := handler.NewHandler(cfg, repo)
+	handler, err := handler.NewHandler(cfg, repo, ch)
 	if err != nil {
 		logger.Error("无法创建 handler", "error", err)
-		os.Exit(1)
+		return
 	}
 	handler.RegisterRoutes()
 
@@ -73,9 +100,25 @@ func main() {
 		ErrorLog:     slog.NewLogLogger(logger.Handler(), slog.LevelError),
 	}
 
-	logger.Info("正在启动服务器...", "port", cfg.Server.Port)
-	if err := srv.ListenAndServe(); err != nil {
-		logger.Error("无法启动服务器", "error", err)
-		os.Exit(1)
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		logger.Info("正在启动服务器...", "port", cfg.Server.Port)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.Error("无法启动服务器", slog.String("error", err.Error()))
+			return
+		}
+	}()
+
+	<-quit
+	logger.Info("正在关闭服务器...")
+
+	ctx, cancel = context.WithTimeout(context.Background(), time.Duration(cfg.Server.ShutdownTimeout)*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		logger.Error("关闭服务器失败", slog.String("error", err.Error()))
 	}
+	logger.Info("服务器已成功关闭")
 }

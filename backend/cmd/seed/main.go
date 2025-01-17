@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"log/slog"
 	"os"
 	"time"
@@ -35,13 +34,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.Database.ConnectTimeout)*time.Second)
 	defer cancel()
 
-	dbpool, err := pgxpool.New(ctx, fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
-		cfg.Database.User,
-		cfg.Database.Password,
-		cfg.Database.Host,
-		cfg.Database.Port,
-		cfg.Database.DBName,
-	))
+	dbpool, err := pgxpool.New(ctx, cfg.Database.DSN)
 	if err != nil {
 		logger.Error("无法创建数据库连接", slog.String("error", err.Error()))
 		os.Exit(1)
@@ -73,7 +66,10 @@ func main() {
 					continue
 				}
 
-				if err := repo.CreateUser(context.Background(), user); err != nil {
+				ctx, cancel = context.WithTimeout(context.Background(), time.Duration(cfg.Database.QueryTimeout)*time.Second)
+				defer cancel()
+
+				if err := repo.CreateUser(ctx, user); err != nil {
 					slog.Error("无法插入用户", slog.String("error", err.Error()))
 					continue
 				}

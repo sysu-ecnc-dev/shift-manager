@@ -11,6 +11,8 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.2
 	github.com/mozillazg/go-pinyin v0.20.0
+	github.com/rabbitmq/amqp091-go v1.10.0
+	github.com/wneessen/go-mail v0.6.1
 	golang.org/x/crypto v0.32.0
 )
 

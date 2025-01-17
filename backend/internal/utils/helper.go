@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"log/slog"
+	"time"
 
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/config"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/repository"
@@ -10,7 +11,10 @@ import (
 )
 
 func EnsureAdminExists(cfg *config.Config, repo *repository.Repository) error {
-	admin, err := repo.GetUserByUsername(context.Background(), cfg.InitialAdmin.Username)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.Database.QueryTimeout)*time.Second)
+	defer cancel()
+
+	admin, err := repo.GetUserByUsername(ctx, cfg.InitialAdmin.Username)
 	if admin != nil && err == nil {
 		return nil
 	}
@@ -31,7 +35,10 @@ func EnsureAdminExists(cfg *config.Config, repo *repository.Repository) error {
 		Role:         repository.RoleBlackCore,
 	}
 
-	if err := repo.CreateUser(context.Background(), admin); err != nil {
+	ctx, cancel = context.WithTimeout(context.Background(), time.Duration(cfg.Database.QueryTimeout)*time.Second)
+	defer cancel()
+
+	if err := repo.CreateUser(ctx, admin); err != nil {
 		return err
 	}
 

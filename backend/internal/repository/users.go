@@ -71,7 +71,7 @@ func (r *Repository) UpdateUser(ctx context.Context, user *User) error {
 			full_name = $2,
 			email = $3,
 			role = $4,
-			active = $5,
+			is_active = $5,
 			version = version + 1
 		WHERE id = $6 AND version = $7
 		RETURNING *
@@ -82,7 +82,7 @@ func (r *Repository) UpdateUser(ctx context.Context, user *User) error {
 		user.FullName,
 		user.Email,
 		user.Role,
-		user.Active,
+		user.IsActive,
 		user.ID,
 		user.Version,
 	}
