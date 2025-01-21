@@ -2,16 +2,21 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5"
+	amqp "github.com/rabbitmq/amqp091-go"
+	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/repository"
+	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/utils"
 	"golang.org/x/crypto/bcrypt"
 )
 
-type CustomClaims struct {
+type AuthClaims struct {
 	Role string `json:"role"`
 	jwt.RegisteredClaims
 }
@@ -57,9 +62,9 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 生成 JWT
-	expiration := time.Now().Add(time.Duration(h.config.JWT.Expiration) * time.Hour)
+	expiration := time.Now().Add(time.Duration(h.config.JWT.Auth.Expiration) * time.Hour)
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, CustomClaims{
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, AuthClaims{
 		Role: string(user.Role),
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expiration),
@@ -68,7 +73,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 			Subject:   user.ID.String(),
 		},
 	})
-	ss, err := token.SignedString([]byte(h.config.JWT.Secret))
+	ss, err := token.SignedString([]byte(h.config.JWT.Auth.Secret))
 	if err != nil {
 		h.internalServerError(w, r, err)
 		return
@@ -104,4 +109,89 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	})
 
 	h.successResponse(w, r, "登出成功", nil)
+}
+
+func (h *Handler) RequestResetPassword(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Username string `json:"username" validate:"required"`
+	}
+
+	if err := h.readJSON(r, &req); err != nil {
+		h.badRequest(w, r, err)
+		return
+	}
+	if err := h.validate.Struct(req); err != nil {
+		h.badRequest(w, r, err)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), time.Duration(h.config.Database.QueryTimeout)*time.Second)
+	defer cancel()
+
+	user, err := h.repository.GetUserByUsername(ctx, req.Username)
+	if err != nil {
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			// 这里虽然已经知道了用户不存在，但是为了安全起见，还是告诉客户端邮件已发送，以防止接口被滥用
+			h.successResponse(w, r, "重置密码所需验证码已通过邮件发送", nil)
+		default:
+			h.internalServerError(w, r, err)
+		}
+		return
+	}
+
+	// 生成 OTP 并将 OTP 存到 redis
+	otp := utils.GenerateRandomOTP()
+
+	ctx, cancel = context.WithTimeout(context.Background(), time.Duration(h.config.Redis.OperationExpiration)*time.Minute)
+	defer cancel()
+
+	if err := h.redisClient.Set(ctx, fmt.Sprintf("%s_otp", user.Username), otp, time.Duration(h.config.OTP.Expiration)*time.Minute).Err(); err != nil {
+		h.internalServerError(w, r, err)
+		return
+	}
+
+	// 准备邮件
+	mailMessage := repository.MailMessage{
+		Type: "reset_password",
+		To:   user.Email,
+		Data: repository.ResetPasswordMailData{
+			FullName:   user.FullName,
+			OTP:        otp,
+			Expiration: h.config.OTP.Expiration,
+		},
+	}
+
+	// 序列化邮件
+	mailData, err := json.Marshal(mailMessage)
+	if err != nil {
+		h.internalServerError(w, r, err)
+		return
+	}
+
+	// 发送邮件到消息队列中
+	ctx, cancel = context.WithTimeout(context.Background(), time.Duration(h.config.RabbitMQ.PublishTimeout)*time.Second)
+	defer cancel()
+
+	if err := h.mailChannel.PublishWithContext(
+		ctx,
+		"",
+		"email_queue",
+		true,
+		false,
+		amqp.Publishing{
+			ContentType: "application/json",
+			Body:        mailData,
+		},
+	); err != nil {
+		h.internalServerError(w, r, err)
+		return
+	}
+
+	// 返回成功响应
+	h.successResponse(w, r, "重置密码所需验证码已通过邮件发送", nil)
+}
+
+func (h *Handler) ResetPassword(w http.ResponseWriter, r *http.Request) {
+
 }

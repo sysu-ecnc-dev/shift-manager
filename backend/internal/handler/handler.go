@@ -7,6 +7,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	zh_translations "github.com/go-playground/validator/v10/translations/zh"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"github.com/redis/go-redis/v9"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/config"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/repository"
 )
@@ -17,11 +18,12 @@ type Handler struct {
 	repository  *repository.Repository
 	translator  ut.Translator
 	mailChannel *amqp.Channel
+	redisClient *redis.Client
 
 	Mux *chi.Mux
 }
 
-func NewHandler(cfg *config.Config, repo *repository.Repository, mailCh *amqp.Channel) (*Handler, error) {
+func NewHandler(cfg *config.Config, repo *repository.Repository, mailCh *amqp.Channel, rdb *redis.Client) (*Handler, error) {
 	validate := validator.New(validator.WithRequiredStructEnabled())
 	zh := zh.New()
 	uni := ut.New(zh, zh)
@@ -36,6 +38,7 @@ func NewHandler(cfg *config.Config, repo *repository.Repository, mailCh *amqp.Ch
 		repository:  repo,
 		translator:  trans,
 		mailChannel: mailCh,
+		redisClient: rdb,
 
 		Mux: chi.NewRouter(),
 	}, nil
@@ -48,6 +51,7 @@ func (h *Handler) RegisterRoutes() {
 	h.Mux.Route("/auth", func(r chi.Router) {
 		r.Post("/login", h.Login)
 		r.Post("/logout", h.Logout)
+		r.Post("/request-reset-password", h.RequestResetPassword)
 	})
 
 	h.Mux.Group(func(r chi.Router) {
@@ -60,6 +64,7 @@ func (h *Handler) RegisterRoutes() {
 
 		r.Route("/users", func(r chi.Router) {
 			r.Get("/", h.GetAllUsers)
+			r.Post("/", h.CreateUser)
 		})
 	})
 }

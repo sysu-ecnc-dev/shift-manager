@@ -1,9 +1,10 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"encoding/gob"
+	"encoding/json"
+	"html/template"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -13,6 +14,7 @@ import (
 
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/config"
+	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/repository"
 	"github.com/wneessen/go-mail"
 )
 
@@ -114,18 +116,89 @@ func main() {
 				return
 			case msg := <-msgs:
 				logger.Info("收到消息", slog.String("message", string(msg.Body)))
-				// 使用 gob 解码信息
-				mailMsg := mail.NewMsg()
-				if err := gob.NewDecoder(bytes.NewReader(msg.Body)).Decode(mailMsg); err != nil {
-					logger.Error("邮件解码失败", slog.String("error", err.Error()))
+				// 对邮件信息反序列化
+				mailMessage := repository.MailMessage{}
+				if err := json.Unmarshal(msg.Body, &mailMessage); err != nil {
+					logger.Error("邮件信息反序列化失败", slog.String("error", err.Error()))
 					_ = msg.Nack(false, false)
 					continue
 				}
 
+				// 构建邮件
+				mail := mail.NewMsg()
+				if err := mail.From(cfg.Email.SMTP.Username); err != nil {
+					logger.Error("无法设置邮件发件人", slog.String("error", err.Error()))
+					_ = msg.Nack(false, false)
+					continue
+				}
+				if err := mail.To(mailMessage.To); err != nil {
+					logger.Error("无法设置邮件收件人", slog.String("error", err.Error()))
+					_ = msg.Nack(false, false)
+					continue
+				}
+
+				// 根据邮件类型解析数据
+				switch mailMessage.Type {
+				case "create_user":
+					tmpl, err := template.ParseFiles("./templates/new_account_email.html")
+					if err != nil {
+						logger.Error("无法解析邮件模板", slog.String("error", err.Error()))
+						_ = msg.Nack(false, false)
+						continue
+					}
+					if err := mail.SetBodyHTMLTemplate(tmpl, mailMessage.Data); err != nil {
+						logger.Error("无法设置邮件正文", slog.String("error", err.Error()))
+						_ = msg.Nack(false, false)
+						continue
+					}
+					mail.Subject("ECNC 假勤系统 - 账户信息")
+				case "reset_password":
+					tmpl, err := template.ParseFiles("./templates/reset_password_otp_email.html")
+					if err != nil {
+						logger.Error("无法解析邮件模板", slog.String("error", err.Error()))
+						_ = msg.Nack(false, false)
+						continue
+					}
+					if err := mail.SetBodyHTMLTemplate(tmpl, mailMessage.Data); err != nil {
+						logger.Error("无法设置邮件正文", slog.String("error", err.Error()))
+						_ = msg.Nack(false, false)
+						continue
+					}
+					mail.Subject("ECNC 假勤系统 - 重置密码")
+				default:
+					logger.Error("不支持的邮件类型", slog.String("type", mailMessage.Type))
+					_ = msg.Nack(false, false)
+					continue
+				}
+
+				// 获取重试次数
+				retryCount := 0
+				if headers := msg.Headers; headers != nil {
+					if count, ok := headers["x-retry-count"].(int32); ok {
+						retryCount = int(count)
+					}
+				}
+
 				// 发送邮件
-				if err := client.Send(mailMsg); err != nil {
-					logger.Error("邮件发送失败", slog.String("error", err.Error()))
-					_ = msg.Nack(false, true) // 发送邮件失败需要重新入队
+				if err := client.Send(mail); err != nil {
+					logger.Error("邮件发送失败",
+						slog.String("error", err.Error()),
+						slog.Int("retryCount", retryCount))
+
+					// 如果重试次数小于3，则重新入队
+					if retryCount < 3 {
+						// 更新重试次数
+						if msg.Headers == nil {
+							msg.Headers = make(amqp.Table)
+						}
+						msg.Headers["x-retry-count"] = int32(retryCount + 1)
+
+						_ = msg.Nack(false, true)
+					} else {
+						// 超过重试次数，丢弃消息
+						logger.Error("邮件发送失败次数超过3次，丢弃消息")
+						_ = msg.Nack(false, false)
+					}
 					continue
 				}
 

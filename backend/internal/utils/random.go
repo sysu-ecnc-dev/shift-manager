@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"math/rand"
 
 	"github.com/mozillazg/go-pinyin"
@@ -75,4 +76,17 @@ func GenerateRandomUser(password string, emailDomainName string) (*repository.Us
 	}
 
 	return user, nil
+}
+
+func GenerateRandomOTP() string {
+	return fmt.Sprintf("%6d", rand.Intn(1000000))
+}
+
+func GenerateRandomPassword(length int) string {
+	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*")
+	random_password := make([]rune, length)
+	for i := range random_password {
+		random_password[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(random_password)
 }

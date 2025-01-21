@@ -28,9 +28,13 @@ type InitialAdminConfig struct {
 	Email    string
 }
 
-type JWTConfig struct {
+type JWTAuthConfig struct {
 	Expiration int
 	Secret     string
+}
+
+type JWTConfig struct {
+	Auth JWTAuthConfig
 }
 
 type SeedConfig struct {
@@ -55,6 +59,22 @@ type RabbitMQConfig struct {
 	PublishTimeout int
 }
 
+type RedisConfig struct {
+	Host                string
+	Port                int
+	Password            string
+	ConnectTimeout      int
+	OperationExpiration int
+}
+
+type OTPConfig struct {
+	Expiration int
+}
+
+type NewUserConfig struct {
+	PasswordLength int
+}
+
 type Config struct {
 	Environment  string
 	Server       ServerConfig
@@ -64,6 +84,9 @@ type Config struct {
 	Seed         SeedConfig
 	Email        EmailConfig
 	RabbitMQ     RabbitMQConfig
+	Redis        RedisConfig
+	OTP          OTPConfig
+	NewUser      NewUserConfig
 }
 
 func LoadConfig() (*Config, error) {
@@ -132,11 +155,11 @@ func LoadConfig() (*Config, error) {
 	}
 
 	// JWT
-	cfg.JWT.Expiration, err = getEnvAsInt("JWT_EXPIRATION")
+	cfg.JWT.Auth.Expiration, err = getEnvAsInt("JWT_AUTH_EXPIRATION")
 	if err != nil {
 		return nil, err
 	}
-	cfg.JWT.Secret, err = getEnvAsString("JWT_SECRET")
+	cfg.JWT.Auth.Secret, err = getEnvAsString("JWT_AUTH_SECRET")
 	if err != nil {
 		return nil, err
 	}
@@ -179,6 +202,40 @@ func LoadConfig() (*Config, error) {
 		return nil, err
 	}
 	cfg.RabbitMQ.PublishTimeout, err = getEnvAsInt("RABBITMQ_PUBLISH_TIMEOUT")
+	if err != nil {
+		return nil, err
+	}
+
+	// redis
+	cfg.Redis.Host, err = getEnvAsString("REDIS_HOST")
+	if err != nil {
+		return nil, err
+	}
+	cfg.Redis.Port, err = getEnvAsInt("REDIS_PORT")
+	if err != nil {
+		return nil, err
+	}
+	cfg.Redis.Password, err = getEnvAsString("REDIS_PASSWORD")
+	if err != nil {
+		return nil, err
+	}
+	cfg.Redis.ConnectTimeout, err = getEnvAsInt("REDIS_CONNECT_TIMEOUT")
+	if err != nil {
+		return nil, err
+	}
+	cfg.Redis.OperationExpiration, err = getEnvAsInt("REDIS_OPERATION_EXPIRATION")
+	if err != nil {
+		return nil, err
+	}
+
+	// otp
+	cfg.OTP.Expiration, err = getEnvAsInt("OTP_EXPIRATION")
+	if err != nil {
+		return nil, err
+	}
+
+	// new user
+	cfg.NewUser.PasswordLength, err = getEnvAsInt("NEW_USER_PASSWORD_LENGTH")
 	if err != nil {
 		return nil, err
 	}

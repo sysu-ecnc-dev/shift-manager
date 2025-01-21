@@ -60,9 +60,9 @@ func (h *Handler) auth(next http.Handler) http.Handler {
 
 		// 验证 token
 		tokenString := cookie.Value
-		claims := &CustomClaims{}
+		claims := &AuthClaims{}
 		_, err = jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
-			return []byte(h.config.JWT.Secret), nil
+			return []byte(h.config.JWT.Auth.Secret), nil
 		})
 		if err != nil {
 			h.errorResponse(w, r, "无效的令牌")

@@ -10,7 +10,7 @@ services:
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-  
+
   rabbitmq:
     image: rabbitmq:4-management-alpine
     container_name: rabbitmq
@@ -23,6 +23,23 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "${REDIS_PORT}:6379"
+    volumes:
+      - redis_data:/data
+    command:
+      [
+        "redis-server",
+        "--appendonly",
+        "yes",
+        "--requirepass",
+        "${REDIS_PASSWORD}",
+      ]
+
 volumes:
   postgres_data:
   rabbitmq_data:
+  redis_data:

@@ -12,6 +12,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"github.com/redis/go-redis/v9"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/config"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/handler"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/repository"
@@ -32,7 +33,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.Database.ConnectTimeout)*time.Second)
 	defer cancel()
 
-	dbpool, err := pgxpool.New(ctx, "")
+	dbpool, err := pgxpool.New(ctx, cfg.Database.DSN)
 	if err != nil {
 		logger.Error("无法创建数据库连接池", "error", err)
 		return
@@ -82,8 +83,15 @@ func main() {
 		return
 	}
 
+	// 连接 redis
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port),
+		Password: cfg.Redis.Password,
+		DB:       0,
+	})
+
 	// 创建 handler
-	handler, err := handler.NewHandler(cfg, repo, ch)
+	handler, err := handler.NewHandler(cfg, repo, ch, rdb)
 	if err != nil {
 		logger.Error("无法创建 handler", "error", err)
 		return
