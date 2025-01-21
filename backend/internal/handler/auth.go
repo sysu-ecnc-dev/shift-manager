@@ -193,5 +193,65 @@ func (h *Handler) RequestResetPassword(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) ResetPassword(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Username string `json:"username" validate:"required"`
+		OTP      string `json:"otp" validate:"required"`
+		Password string `json:"password" validate:"required"`
+	}
 
+	if err := h.readJSON(r, &req); err != nil {
+		h.badRequest(w, r, err)
+		return
+	}
+	if err := h.validate.Struct(req); err != nil {
+		h.badRequest(w, r, err)
+		return
+	}
+
+	// 检验 OTP
+	ctx, cancel := context.WithTimeout(r.Context(), time.Duration(h.config.Redis.OperationExpiration)*time.Minute)
+	defer cancel()
+
+	otp, err := h.redisClient.Get(ctx, fmt.Sprintf("%s_otp", req.Username)).Result()
+	if err != nil {
+		h.errorResponse(w, r, "验证码错误")
+		return
+	}
+
+	if otp != req.OTP {
+		h.errorResponse(w, r, "验证码错误")
+		return
+	}
+
+	// 删除 OTP
+	if err := h.redisClient.Del(ctx, fmt.Sprintf("%s_otp", req.Username)).Err(); err != nil {
+		h.internalServerError(w, r, err)
+		return
+	}
+
+	// 更新密码
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		h.internalServerError(w, r, err)
+		return
+	}
+
+	// 先获取用户信息
+	ctx, cancel = context.WithTimeout(r.Context(), time.Duration(h.config.Database.QueryTimeout)*time.Second)
+	defer cancel()
+
+	user, err := h.repository.GetUserByUsername(ctx, req.Username)
+	if err != nil {
+		h.internalServerError(w, r, err)
+		return
+	}
+
+	user.PasswordHash = string(hashedPassword)
+
+	if err := h.repository.UpdateUser(ctx, user); err != nil {
+		h.internalServerError(w, r, err)
+		return
+	}
+
+	h.successResponse(w, r, "重置密码成功", nil)
 }

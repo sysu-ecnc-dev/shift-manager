@@ -52,6 +52,7 @@ func (h *Handler) RegisterRoutes() {
 		r.Post("/login", h.Login)
 		r.Post("/logout", h.Logout)
 		r.Post("/request-reset-password", h.RequestResetPassword)
+		r.Post("/reset-password", h.ResetPassword)
 	})
 
 	h.Mux.Group(func(r chi.Router) {
