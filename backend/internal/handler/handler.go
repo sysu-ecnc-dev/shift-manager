@@ -64,8 +64,14 @@ func (h *Handler) RegisterRoutes() {
 		})
 
 		r.Route("/users", func(r chi.Router) {
+			r.Use(h.RequiredRole([]string{"黑心"}))
 			r.Get("/", h.GetAllUsers)
 			r.Post("/", h.CreateUser)
+			r.Route("/{userID}", func(r chi.Router) {
+				r.Use(h.userInfo)
+				r.Get("/", h.GetUserInfo)
+				r.Patch("/", h.UpdateUser)
+			})
 		})
 	})
 }

@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"slices"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -104,6 +106,47 @@ func (h *Handler) myInfo(next http.Handler) http.Handler {
 		}
 
 		ctx = context.WithValue(r.Context(), MyInfoCtx, myInfo)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func (h *Handler) RequiredRole(roles []string) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			role := r.Context().Value(RoleCtxKey).(string)
+			if !slices.Contains(roles, role) {
+				h.errorResponse(w, r, "权限不足")
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+func (h *Handler) userInfo(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userIDParam := chi.URLParam(r, "userID")
+		userID, err := uuid.Parse(userIDParam)
+		if err != nil {
+			h.errorResponse(w, r, "用户ID无效")
+			return
+		}
+
+		ctx, cancel := context.WithTimeout(r.Context(), time.Duration(h.config.Database.QueryTimeout)*time.Second)
+		defer cancel()
+
+		user, err := h.repository.GetUserByID(ctx, userID)
+		if err != nil {
+			switch {
+			case errors.Is(err, pgx.ErrNoRows):
+				h.errorResponse(w, r, "用户不存在")
+			default:
+				h.internalServerError(w, r, err)
+			}
+			return
+		}
+
+		ctx = context.WithValue(r.Context(), UserInfoCtx, user)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

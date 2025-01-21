@@ -126,3 +126,49 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	// 成功响应
 	h.successResponse(w, r, "用户创建成功", nil)
 }
+
+func (h *Handler) GetUserInfo(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value(UserInfoCtx).(*repository.User)
+	h.successResponse(w, r, "获取用户信息成功", user)
+}
+
+func (h *Handler) UpdateUser(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Role     *string `json:"role" validate:"oneof=普通助理 资深助理 黑心"`
+		IsActive *bool   `json:"isActive"`
+	}
+
+	if err := h.readJSON(r, &req); err != nil {
+		h.badRequest(w, r, err)
+		return
+	}
+	if err := h.validate.Struct(req); err != nil {
+		h.badRequest(w, r, err)
+		return
+	}
+
+	user := r.Context().Value(UserInfoCtx).(*repository.User)
+
+	// 禁止操作初始管理员
+	if user.Username == h.config.InitialAdmin.Username {
+		h.errorResponse(w, r, "禁止更新初始管理员信息")
+		return
+	}
+
+	if req.Role != nil {
+		user.Role = repository.Role(*req.Role)
+	}
+	if req.IsActive != nil {
+		user.IsActive = *req.IsActive
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), time.Duration(h.config.Database.QueryTimeout)*time.Second)
+	defer cancel()
+
+	if err := h.repository.UpdateUser(ctx, user); err != nil {
+		h.internalServerError(w, r, err)
+		return
+	}
+
+	h.successResponse(w, r, "用户更新成功", user)
+}
