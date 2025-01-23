@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -15,10 +16,7 @@ import (
 )
 
 func (h *Handler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), time.Duration(h.config.Database.QueryTimeout)*time.Second)
-	defer cancel()
-
-	users, err := h.repository.GetAllUsers(ctx)
+	users, err := h.repository.GetAllUsers()
 	if err != nil {
 		h.internalServerError(w, r, err)
 		return
@@ -60,37 +58,35 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		PasswordHash: string(hashedPassword),
 		FullName:     req.FullName,
 		Email:        req.Email,
-		Role:         repository.Role(req.Role),
+		Role:         req.Role,
 	}
 
 	ctx, cancel := context.WithTimeout(r.Context(), time.Duration(h.config.Database.QueryTimeout)*time.Second)
 	defer cancel()
 
-	if err := h.repository.CreateUser(ctx, user); err != nil {
+	if err := h.repository.CreateUser(user); err != nil {
 		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) {
+		switch {
+		case errors.As(err, &pgErr):
 			switch {
 			case pgErr.ConstraintName == "users_username_key":
 				h.badRequest(w, r, errors.New("用户名已存在"))
-				return
 			case pgErr.ConstraintName == "users_email_key":
 				h.badRequest(w, r, errors.New("邮箱已存在"))
-				return
 			default:
 				h.internalServerError(w, r, err)
-				return
 			}
-		} else {
+		default:
 			h.internalServerError(w, r, err)
-			return
 		}
+		return
 	}
 
 	// 准备邮件
-	mailMessage := repository.MailMessage{
+	mailMessage := utils.MailMessage{
 		Type: "create_user",
 		To:   user.Email,
-		Data: repository.CreateUserMailData{
+		Data: utils.CreateUserMailData{
 			FullName: req.FullName,
 			Username: req.Username,
 			Password: password,
@@ -124,7 +120,7 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 成功响应
-	h.successResponse(w, r, "用户创建成功", nil)
+	h.successResponse(w, r, "用户创建成功", user)
 }
 
 func (h *Handler) GetUserInfo(w http.ResponseWriter, r *http.Request) {
@@ -156,19 +152,32 @@ func (h *Handler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if req.Role != nil {
-		user.Role = repository.Role(*req.Role)
+		user.Role = *req.Role
 	}
 	if req.IsActive != nil {
 		user.IsActive = *req.IsActive
 	}
 
-	ctx, cancel := context.WithTimeout(r.Context(), time.Duration(h.config.Database.QueryTimeout)*time.Second)
-	defer cancel()
+	if err := h.repository.UpdateUser(user); err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			h.errorResponse(w, r, "更新用户信息失败，请重试")
+		default:
+			h.internalServerError(w, r, err)
+		}
+		return
+	}
 
-	if err := h.repository.UpdateUser(ctx, user); err != nil {
+	h.successResponse(w, r, "更新用户信息成功", user)
+}
+
+func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value(UserInfoCtx).(*repository.User)
+
+	if err := h.repository.DeleteUser(user.ID); err != nil {
 		h.internalServerError(w, r, err)
 		return
 	}
 
-	h.successResponse(w, r, "用户更新成功", user)
+	h.successResponse(w, r, "删除用户成功", nil)
 }

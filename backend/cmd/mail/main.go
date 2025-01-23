@@ -14,7 +14,7 @@ import (
 
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/config"
-	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/repository"
+	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/utils"
 	"github.com/wneessen/go-mail"
 )
 
@@ -117,7 +117,7 @@ func main() {
 			case msg := <-msgs:
 				logger.Info("收到消息", slog.String("message", string(msg.Body)))
 				// 对邮件信息反序列化
-				mailMessage := repository.MailMessage{}
+				mailMessage := utils.MailMessage{}
 				if err := json.Unmarshal(msg.Body, &mailMessage); err != nil {
 					logger.Error("邮件信息反序列化失败", slog.String("error", err.Error()))
 					_ = msg.Nack(false, false)

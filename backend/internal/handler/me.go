@@ -1,12 +1,10 @@
 package handler
 
 import (
-	"context"
+	"database/sql"
 	"errors"
 	"net/http"
-	"time"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/repository"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -46,12 +44,9 @@ func (h *Handler) UpdateMyPassword(w http.ResponseWriter, r *http.Request) {
 
 	myInfo.PasswordHash = string(hashedPassword)
 
-	ctx, cancel := context.WithTimeout(r.Context(), time.Duration(h.config.Database.QueryTimeout)*time.Second)
-	defer cancel()
-
-	if err := h.repository.UpdateUser(ctx, myInfo); err != nil {
+	if err := h.repository.UpdateUser(myInfo); err != nil {
 		switch {
-		case errors.Is(err, pgx.ErrNoRows):
+		case errors.Is(err, sql.ErrNoRows):
 			h.errorResponse(w, r, "更新密码失败，请重试")
 		default:
 			h.internalServerError(w, r, err)

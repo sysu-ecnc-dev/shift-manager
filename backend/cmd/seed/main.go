@@ -2,15 +2,17 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"flag"
 	"log/slog"
 	"os"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/config"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/repository"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/utils"
+
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 func main() {
@@ -30,23 +32,29 @@ func main() {
 		os.Exit(1)
 	}
 
-	// 连接数据库
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.Database.ConnectTimeout)*time.Second)
-	defer cancel()
-
-	dbpool, err := pgxpool.New(ctx, cfg.Database.DSN)
+	// 创建数据库连接池
+	dbpool, err := sql.Open("pgx", cfg.Database.DSN)
 	if err != nil {
-		logger.Error("无法创建数据库连接", slog.String("error", err.Error()))
-		os.Exit(1)
+		logger.Error("无法创建数据库连接池", "error", err)
+		return
 	}
 	defer dbpool.Close()
 
-	if err := dbpool.Ping(ctx); err != nil {
-		logger.Error("无法连接到数据库", slog.String("error", err.Error()))
-		os.Exit(1)
+	dbpool.SetMaxOpenConns(cfg.Database.MaxOpenConns)
+	dbpool.SetMaxIdleConns(cfg.Database.MaxIdleConns)
+	dbpool.SetConnMaxIdleTime(time.Duration(cfg.Database.MaxIdleTime) * time.Second)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.Database.ConnectTimeout)*time.Second)
+	defer cancel()
+
+	// sql.Open 只是创建数据库连接池对象，并不会立即连接到数据库，因此需要显式地 ping 一下
+	if err := dbpool.PingContext(ctx); err != nil {
+		logger.Error("无法连接到数据库", "error", err)
+		return
 	}
 
-	repo := repository.NewRepository(dbpool)
+	// 创建 repository
+	repo := repository.NewRepository(cfg, dbpool)
 
 	// 执行操作
 	switch op {
@@ -60,16 +68,13 @@ func main() {
 		} else {
 			cnt := n
 			for i := 0; i < n; i++ {
-				user, err := utils.GenerateRandomUser(cfg.Seed.UserPassword, cfg.Email.UserDomain)
+				user, err := utils.GenerateRandomUser(cfg.Seed.User.Password, cfg.Email.UserDomain)
 				if err != nil {
 					slog.Error("无法生成随机用户", slog.String("error", err.Error()))
 					continue
 				}
 
-				ctx, cancel = context.WithTimeout(context.Background(), time.Duration(cfg.Database.QueryTimeout)*time.Second)
-				defer cancel()
-
-				if err := repo.CreateUser(ctx, user); err != nil {
+				if err := repo.CreateUser(user); err != nil {
 					slog.Error("无法插入用户", slog.String("error", err.Error()))
 					continue
 				}

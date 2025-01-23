@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -10,19 +11,22 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/redis/go-redis/v9"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/config"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/handler"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/repository"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/utils"
+
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 func main() {
+	// 设置日志
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
 
+	// 加载配置
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		logger.Error("无法加载配置文件", "error", err)
@@ -30,22 +34,28 @@ func main() {
 	}
 
 	// 创建数据库连接池
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.Database.ConnectTimeout)*time.Second)
-	defer cancel()
-
-	dbpool, err := pgxpool.New(ctx, cfg.Database.DSN)
+	dbpool, err := sql.Open("pgx", cfg.Database.DSN)
 	if err != nil {
 		logger.Error("无法创建数据库连接池", "error", err)
 		return
 	}
 	defer dbpool.Close()
-	if err := dbpool.Ping(ctx); err != nil {
+
+	dbpool.SetMaxOpenConns(cfg.Database.MaxOpenConns)
+	dbpool.SetMaxIdleConns(cfg.Database.MaxIdleConns)
+	dbpool.SetConnMaxIdleTime(time.Duration(cfg.Database.MaxIdleTime) * time.Second)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.Database.ConnectTimeout)*time.Second)
+	defer cancel()
+
+	// sql.Open 只是创建数据库连接池对象，并不会立即连接到数据库，因此需要显式地 ping 一下
+	if err := dbpool.PingContext(ctx); err != nil {
 		logger.Error("无法连接到数据库", "error", err)
 		return
 	}
 
 	// 创建 repository
-	repo := repository.NewRepository(dbpool)
+	repo := repository.NewRepository(cfg, dbpool)
 
 	// 确保数据库中存在初始管理员
 	if err := utils.EnsureAdminExists(cfg, repo); err != nil {

@@ -1,9 +1,8 @@
 package utils
 
 import (
-	"context"
-	"log/slog"
-	"time"
+	"database/sql"
+	"errors"
 
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/config"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/repository"
@@ -11,17 +10,22 @@ import (
 )
 
 func EnsureAdminExists(cfg *config.Config, repo *repository.Repository) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.Database.QueryTimeout)*time.Second)
-	defer cancel()
-
-	admin, err := repo.GetUserByUsername(ctx, cfg.InitialAdmin.Username)
+	admin, err := repo.GetUserByUsername(cfg.InitialAdmin.Username)
 	if admin != nil && err == nil {
+		// 说明此时管理员存在，直接返回
 		return nil
 	}
 
-	slog.Warn("数据库中不存在初始管理员, 创建中...")
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			// 说明此时管理员不存在，需要创建新的管理员
+		default:
+			// 发生了其他错误
+			return err
+		}
+	}
 
-	// 生成密码哈希
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(cfg.InitialAdmin.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
@@ -29,16 +33,13 @@ func EnsureAdminExists(cfg *config.Config, repo *repository.Repository) error {
 
 	admin = &repository.User{
 		Username:     cfg.InitialAdmin.Username,
+		PasswordHash: string(passwordHash),
 		FullName:     cfg.InitialAdmin.FullName,
 		Email:        cfg.InitialAdmin.Email,
-		PasswordHash: string(passwordHash),
-		Role:         repository.RoleBlackCore,
+		Role:         BlackCoreRole,
 	}
 
-	ctx, cancel = context.WithTimeout(context.Background(), time.Duration(cfg.Database.QueryTimeout)*time.Second)
-	defer cancel()
-
-	if err := repo.CreateUser(ctx, admin); err != nil {
+	if err := repo.CreateUser(admin); err != nil {
 		return err
 	}
 

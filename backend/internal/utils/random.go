@@ -31,11 +31,11 @@ func GenerateRandomChineseName() string {
 	return surname + name
 }
 
-func GenerateRandomRole() repository.Role {
-	var roles = []repository.Role{
-		repository.RoleNormalAssistant,
-		repository.RoleSeniorAssistant,
-		repository.RoleBlackCore,
+func GenerateRandomRole() string {
+	var roles = []string{
+		NormalAssistantRole,
+		SeniorAssistantRole,
+		BlackCoreRole,
 	}
 
 	return roles[rand.Intn(len(roles))]

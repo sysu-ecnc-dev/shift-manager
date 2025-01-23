@@ -64,7 +64,7 @@ func (h *Handler) auth(next http.Handler) http.Handler {
 		tokenString := cookie.Value
 		claims := &AuthClaims{}
 		_, err = jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
-			return []byte(h.config.JWT.Auth.Secret), nil
+			return []byte(h.config.JWT.Secret), nil
 		})
 		if err != nil {
 			h.errorResponse(w, r, "无效的令牌")
@@ -91,10 +91,7 @@ func (h *Handler) myInfo(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx, cancel := context.WithTimeout(r.Context(), time.Duration(h.config.Database.QueryTimeout)*time.Second)
-		defer cancel()
-
-		myInfo, err := h.repository.GetUserByID(ctx, sub)
+		myInfo, err := h.repository.GetUserByID(sub)
 		if err != nil {
 			switch {
 			case errors.Is(err, pgx.ErrNoRows):
@@ -105,7 +102,7 @@ func (h *Handler) myInfo(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx = context.WithValue(r.Context(), MyInfoCtx, myInfo)
+		ctx := context.WithValue(r.Context(), MyInfoCtx, myInfo)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -135,7 +132,7 @@ func (h *Handler) userInfo(next http.Handler) http.Handler {
 		ctx, cancel := context.WithTimeout(r.Context(), time.Duration(h.config.Database.QueryTimeout)*time.Second)
 		defer cancel()
 
-		user, err := h.repository.GetUserByID(ctx, userID)
+		user, err := h.repository.GetUserByID(userID)
 		if err != nil {
 			switch {
 			case errors.Is(err, pgx.ErrNoRows):

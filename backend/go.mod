@@ -3,6 +3,7 @@ module github.com/sysu-ecnc-dev/shift-manager/backend
 go 1.23.4
 
 require (
+	github.com/caarlos0/env/v11 v11.3.1
 	github.com/go-chi/chi/v5 v5.2.0
 	github.com/go-playground/locales v0.14.1
 	github.com/go-playground/universal-translator v0.18.1

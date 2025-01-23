@@ -1,15 +1,19 @@
 package repository
 
 import (
-	"github.com/jackc/pgx/v5/pgxpool"
+	"database/sql"
+
+	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/config"
 )
 
 type Repository struct {
-	dbpool *pgxpool.Pool
+	cfg    *config.Config
+	dbpool *sql.DB
 }
 
-func NewRepository(dbpool *pgxpool.Pool) *Repository {
+func NewRepository(cfg *config.Config, dbpool *sql.DB) *Repository {
 	return &Repository{
+		cfg:    cfg,
 		dbpool: dbpool,
 	}
 }

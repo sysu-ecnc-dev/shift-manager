@@ -71,6 +71,7 @@ func (h *Handler) RegisterRoutes() {
 				r.Use(h.userInfo)
 				r.Get("/", h.GetUserInfo)
 				r.Patch("/", h.UpdateUser)
+				r.Delete("/", h.DeleteUser)
 			})
 		})
 	})
