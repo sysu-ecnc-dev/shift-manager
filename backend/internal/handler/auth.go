@@ -152,7 +152,7 @@ func (h *Handler) RequestResetPassword(w http.ResponseWriter, r *http.Request) {
 		Data: utils.ResetPasswordMailData{
 			FullName:   user.FullName,
 			OTP:        otp,
-			Expiration: h.config.OTP.Expiration,
+			Expiration: h.config.OTP.Expiration / 60, // 邮件中显示的过期时间以分钟为单位，而配置中以秒为单位
 		},
 	}
 
