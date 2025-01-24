@@ -79,7 +79,7 @@ func GenerateRandomUser(password string, emailDomainName string) (*repository.Us
 }
 
 func GenerateRandomOTP() string {
-	return fmt.Sprintf("%6d", rand.Intn(1000000))
+	return fmt.Sprintf("%06d", rand.Intn(1000000))
 }
 
 func GenerateRandomPassword(length int) string {
