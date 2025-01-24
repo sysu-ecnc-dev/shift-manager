@@ -171,34 +171,10 @@ func main() {
 					continue
 				}
 
-				// 获取重试次数
-				retryCount := 0
-				if headers := msg.Headers; headers != nil {
-					if count, ok := headers["x-retry-count"].(int32); ok {
-						retryCount = int(count)
-					}
-				}
-
 				// 发送邮件
-				if err := client.Send(mail); err != nil {
-					logger.Error("邮件发送失败",
-						slog.String("error", err.Error()),
-						slog.Int("retryCount", retryCount))
-
-					// 如果重试次数小于3，则重新入队
-					if retryCount < 3 {
-						// 更新重试次数
-						if msg.Headers == nil {
-							msg.Headers = make(amqp.Table)
-						}
-						msg.Headers["x-retry-count"] = int32(retryCount + 1)
-
-						_ = msg.Nack(false, true)
-					} else {
-						// 超过重试次数，丢弃消息
-						logger.Error("邮件发送失败次数超过3次，丢弃消息")
-						_ = msg.Nack(false, false)
-					}
+				if err := client.DialAndSend(mail); err != nil {
+					logger.Error("邮件发送失败", slog.String("error", err.Error()))
+					_ = msg.Nack(false, true) // 将消息重新入队
 					continue
 				}
 
