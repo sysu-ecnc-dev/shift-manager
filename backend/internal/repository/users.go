@@ -128,11 +128,11 @@ func (r *Repository) CreateUser(user *User) error {
 	query := `
 		INSERT INTO users (username, password_hash, full_name, email, role)
 		VALUES ($1, $2, $3, $4, $5)
-		RETURNING id, is_active, version
+		RETURNING id, is_active, created_at, version
 	`
 
 	args := []any{user.Username, user.PasswordHash, user.FullName, user.Email, user.Role}
-	if err := r.dbpool.QueryRowContext(ctx, query, args...).Scan(&user.ID, &user.IsActive, &user.Version); err != nil {
+	if err := r.dbpool.QueryRowContext(ctx, query, args...).Scan(&user.ID, &user.IsActive, &user.CreatedAt, &user.Version); err != nil {
 		return err
 	}
 
