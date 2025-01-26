@@ -15,11 +15,11 @@ type ScheduleTemplateMeta struct {
 }
 
 type ScheduleTemplateShift struct {
-	ID             uuid.UUID `json:"id"`
-	TemplateID     uuid.UUID `json:"templateId"`
-	StartTime      string    `json:"startTime"`
-	EndTime        string    `json:"endTime"`
-	ApplicableDays []int32   `json:"applicableDays"`
+	ID                      uuid.UUID `json:"id"`
+	StartTime               string    `json:"startTime"`
+	EndTime                 string    `json:"endTime"`
+	RequiredAssistantNumber int32     `json:"requiredAssistantNumber"`
+	ApplicableDays          []int32   `json:"applicableDays"`
 }
 
 type ScheduleTemplate struct {

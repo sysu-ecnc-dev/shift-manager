@@ -111,7 +111,8 @@ func (h *Handler) myInfo(next http.Handler) http.Handler {
 func (h *Handler) RequiredRole(roles []domain.Role) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			role := r.Context().Value(RoleCtxKey).(domain.Role)
+			roleCtx := r.Context().Value(RoleCtxKey).(string)
+			role := domain.Role(roleCtx)
 			if !slices.Contains(roles, role) {
 				h.errorResponse(w, r, "权限不足")
 				return
