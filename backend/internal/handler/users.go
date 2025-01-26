@@ -10,7 +10,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgconn"
 	amqp "github.com/rabbitmq/amqp091-go"
-	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/repository"
+	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/domain"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/utils"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -53,16 +53,13 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 插入用户到数据库中
-	user := &repository.User{
+	user := &domain.User{
 		Username:     req.Username,
 		PasswordHash: string(hashedPassword),
 		FullName:     req.FullName,
 		Email:        req.Email,
-		Role:         req.Role,
+		Role:         domain.Role(req.Role),
 	}
-
-	ctx, cancel := context.WithTimeout(r.Context(), time.Duration(h.config.Database.QueryTimeout)*time.Second)
-	defer cancel()
 
 	if err := h.repository.CreateUser(user); err != nil {
 		var pgErr *pgconn.PgError
@@ -83,10 +80,10 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 准备邮件
-	mailMessage := utils.MailMessage{
+	mailMessage := domain.MailMessage{
 		Type: "create_user",
 		To:   user.Email,
-		Data: utils.CreateUserMailData{
+		Data: domain.CreateUserMailData{
 			FullName: req.FullName,
 			Username: req.Username,
 			Password: password,
@@ -101,7 +98,7 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 将邮件发送到消息队列
-	ctx, cancel = context.WithTimeout(context.Background(), time.Duration(h.config.RabbitMQ.PublishTimeout)*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(h.config.RabbitMQ.PublishTimeout)*time.Second)
 	defer cancel()
 
 	if err := h.mailChannel.PublishWithContext(
@@ -124,7 +121,7 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetUserInfo(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value(UserInfoCtx).(*repository.User)
+	user := r.Context().Value(UserInfoCtx).(*domain.User)
 	h.successResponse(w, r, "获取用户信息成功", user)
 }
 
@@ -143,16 +140,15 @@ func (h *Handler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := r.Context().Value(UserInfoCtx).(*repository.User)
+	user := r.Context().Value(UserInfoCtx).(*domain.User)
 
 	// 禁止操作初始管理员
 	if user.Username == h.config.InitialAdmin.Username {
 		h.errorResponse(w, r, "禁止更新初始管理员信息")
 		return
 	}
-
 	if req.Role != nil {
-		user.Role = *req.Role
+		user.Role = domain.Role(*req.Role)
 	}
 	if req.IsActive != nil {
 		user.IsActive = *req.IsActive
@@ -172,7 +168,7 @@ func (h *Handler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value(UserInfoCtx).(*repository.User)
+	user := r.Context().Value(UserInfoCtx).(*domain.User)
 
 	if err := h.repository.DeleteUser(user.ID); err != nil {
 		h.internalServerError(w, r, err)

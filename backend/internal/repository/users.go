@@ -5,9 +5,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/domain"
 )
 
-func (r *Repository) GetUserByID(id uuid.UUID) (*User, error) {
+func (r *Repository) GetUserByID(id uuid.UUID) (*domain.User, error) {
 	query := `
 		SELECT username, password_hash, full_name, email, role, is_active, created_at, version
 		FROM users WHERE id = $1
@@ -16,7 +17,7 @@ func (r *Repository) GetUserByID(id uuid.UUID) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(r.cfg.Database.QueryTimeout)*time.Second)
 	defer cancel()
 
-	user := &User{
+	user := &domain.User{
 		ID: id,
 	}
 
@@ -28,7 +29,7 @@ func (r *Repository) GetUserByID(id uuid.UUID) (*User, error) {
 	return user, nil
 }
 
-func (r *Repository) GetUserByUsername(username string) (*User, error) {
+func (r *Repository) GetUserByUsername(username string) (*domain.User, error) {
 	query := `
 		SELECT id, password_hash, full_name, email, role, is_active, created_at, version
 		FROM users WHERE username = $1
@@ -37,7 +38,7 @@ func (r *Repository) GetUserByUsername(username string) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(r.cfg.Database.QueryTimeout)*time.Second)
 	defer cancel()
 
-	user := &User{
+	user := &domain.User{
 		Username: username,
 	}
 
@@ -49,7 +50,7 @@ func (r *Repository) GetUserByUsername(username string) (*User, error) {
 	return user, nil
 }
 
-func (r *Repository) UpdateUser(user *User) error {
+func (r *Repository) UpdateUser(user *domain.User) error {
 	query := `
 		UPDATE users 
 		SET
@@ -74,7 +75,7 @@ func (r *Repository) UpdateUser(user *User) error {
 	return nil
 }
 
-func (r *Repository) GetAllUsers() ([]*User, error) {
+func (r *Repository) GetAllUsers() ([]*domain.User, error) {
 	query := `
 		SELECT id, username, password_hash, full_name, email, role, is_active, created_at, version FROM users
 	`
@@ -88,9 +89,9 @@ func (r *Repository) GetAllUsers() ([]*User, error) {
 	}
 	defer rows.Close()
 
-	users := make([]*User, 0)
+	users := make([]*domain.User, 0)
 	for rows.Next() {
-		user := &User{}
+		user := &domain.User{}
 		dst := []any{&user.ID, &user.Username, &user.PasswordHash, &user.FullName, &user.Email, &user.Role, &user.IsActive, &user.CreatedAt, &user.Version}
 		if err := rows.Scan(dst...); err != nil {
 			return nil, err
@@ -121,7 +122,7 @@ func (r *Repository) DeleteUser(id uuid.UUID) error {
 	return nil
 }
 
-func (r *Repository) CreateUser(user *User) error {
+func (r *Repository) CreateUser(user *domain.User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(r.cfg.Database.QueryTimeout)*time.Second)
 	defer cancel()
 

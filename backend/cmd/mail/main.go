@@ -14,22 +14,28 @@ import (
 
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/config"
-	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/utils"
+	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/domain"
 	"github.com/wneessen/go-mail"
 )
 
 func main() {
-	// 创建 logger
+	/**********************************************
+	 * 创建 logger
+	 **********************************************/
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	// 读取配置文件
+	/**********************************************
+	 * 读取配置文件
+	 **********************************************/
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		logger.Error("无法读取配置文件", slog.String("error", err.Error()))
 		return
 	}
 
-	// 创建邮件客户端
+	/**********************************************
+	 * 创建邮件客户端
+	 **********************************************/
 	client, err := mail.NewClient(cfg.Email.SMTP.Host,
 		mail.WithSMTPAuth(mail.SMTPAuthPlain),
 		mail.WithSSL(),
@@ -54,7 +60,9 @@ func main() {
 	// 令 gob 注册 mail.Msg 类型，方便后续的解码
 	gob.Register(mail.NewMsg())
 
-	// 连接 RabbitMQ
+	/**********************************************
+	 * 连接 RabbitMQ
+	 **********************************************/
 	conn, err := amqp.Dial(cfg.RabbitMQ.DSN)
 	if err != nil {
 		logger.Error("无法连接到 RabbitMQ", slog.String("error", err.Error()))
@@ -117,7 +125,7 @@ func main() {
 			case msg := <-msgs:
 				logger.Info("收到消息", slog.String("message", string(msg.Body)))
 				// 对邮件信息反序列化
-				mailMessage := utils.MailMessage{}
+				mailMessage := domain.MailMessage{}
 				if err := json.Unmarshal(msg.Body, &mailMessage); err != nil {
 					logger.Error("邮件信息反序列化失败", slog.String("error", err.Error()))
 					_ = msg.Nack(false, false)

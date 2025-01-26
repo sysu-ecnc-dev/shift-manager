@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -14,26 +15,34 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/redis/go-redis/v9"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/config"
+	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/domain"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/handler"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/repository"
-	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/utils"
+	"golang.org/x/crypto/bcrypt"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 func main() {
-	// 设置日志
+	/**********************************************
+	 * 创建 logger
+	 **********************************************/
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
 
-	// 加载配置
+	/**********************************************
+	 * 加载配置
+	 **********************************************/
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		logger.Error("无法加载配置文件", "error", err)
 		return
 	}
 
-	// 创建数据库连接池
+	/**********************************************
+	 * 连接数据库
+	 **********************************************/
 	dbpool, err := sql.Open("pgx", cfg.Database.DSN)
 	if err != nil {
 		logger.Error("无法创建数据库连接池", "error", err)
@@ -54,16 +63,46 @@ func main() {
 		return
 	}
 
-	// 创建 repository
+	/**********************************************
+	 * 创建 repository
+	 **********************************************/
 	repo := repository.NewRepository(cfg, dbpool)
 
-	// 确保数据库中存在初始管理员
-	if err := utils.EnsureAdminExists(cfg, repo); err != nil {
-		logger.Error("无法确保初始管理员存在", "error", err)
+	/**********************************************
+	 * 确保数据库中存在初始管理员
+	 **********************************************/
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(cfg.InitialAdmin.Password), bcrypt.DefaultCost)
+	if err != nil {
+		logger.Error("无法生成初始管理员密码哈希", "error", err)
 		return
 	}
+	initialAdmin := &domain.User{
+		Username:     cfg.InitialAdmin.Username,
+		PasswordHash: string(passwordHash),
+		FullName:     cfg.InitialAdmin.FullName,
+		Email:        cfg.InitialAdmin.Email,
+		Role:         domain.RoleBlackCore,
+	}
+	if err := repo.CreateUser(initialAdmin); err != nil {
+		var pgErr *pgconn.PgError
+		switch {
+		case errors.As(err, &pgErr):
+			switch pgErr.ConstraintName {
+			case "users_username_key":
+				// 如果返回这个错误，说明数据库中已经存在初始管理员，不处理
+			default:
+				logger.Error("无法创建初始管理员", "error", err)
+				return
+			}
+		default:
+			logger.Error("无法创建初始管理员", "error", err)
+			return
+		}
+	}
 
-	// 连接 rabbitmq
+	/**********************************************
+	 * 连接 rabbitmq
+	 **********************************************/
 	conn, err := amqp.Dial(cfg.RabbitMQ.DSN)
 	if err != nil {
 		logger.Error("无法连接到 rabbitmq", "error", err)
@@ -93,14 +132,18 @@ func main() {
 		return
 	}
 
-	// 连接 redis
+	/**********************************************
+	 * 连接 redis
+	 **********************************************/
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port),
 		Password: cfg.Redis.Password,
 		DB:       0,
 	})
 
-	// 创建 handler
+	/**********************************************
+	 * 创建 handler
+	 **********************************************/
 	handler, err := handler.NewHandler(cfg, repo, ch, rdb)
 	if err != nil {
 		logger.Error("无法创建 handler", "error", err)
@@ -108,7 +151,9 @@ func main() {
 	}
 	handler.RegisterRoutes()
 
-	// 启动 HTTP 服务器
+	/**********************************************
+	 * 启动 HTTP 服务器
+	 **********************************************/
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%s", cfg.Server.Port),
 		Handler:      handler.Mux,

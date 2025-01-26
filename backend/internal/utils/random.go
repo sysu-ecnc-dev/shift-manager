@@ -5,7 +5,7 @@ import (
 	"math/rand"
 
 	"github.com/mozillazg/go-pinyin"
-	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/repository"
+	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/domain"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -31,11 +31,11 @@ func GenerateRandomChineseName() string {
 	return surname + name
 }
 
-func GenerateRandomRole() string {
-	var roles = []string{
-		NormalAssistantRole,
-		SeniorAssistantRole,
-		BlackCoreRole,
+func GenerateRandomRole() domain.Role {
+	var roles = []domain.Role{
+		domain.RoleNormalAssistant,
+		domain.RoleSeniorAssistant,
+		domain.RoleBlackCore,
 	}
 
 	return roles[rand.Intn(len(roles))]
@@ -59,7 +59,7 @@ func GenerateUsernameFromChineseName(chineseName string) string {
 	return username
 }
 
-func GenerateRandomUser(password string, emailDomainName string) (*repository.User, error) {
+func GenerateRandomUser(password string, emailDomainName string) (*domain.User, error) {
 	fullName := GenerateRandomChineseName()
 	username := GenerateUsernameFromChineseName(fullName)
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -67,7 +67,7 @@ func GenerateRandomUser(password string, emailDomainName string) (*repository.Us
 		return nil, err
 	}
 
-	user := &repository.User{
+	user := &domain.User{
 		Username:     username,
 		PasswordHash: string(passwordHash),
 		FullName:     fullName,

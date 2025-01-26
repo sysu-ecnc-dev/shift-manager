@@ -5,17 +5,17 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/repository"
+	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/domain"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func (h *Handler) GetMyInfo(w http.ResponseWriter, r *http.Request) {
-	myInfo := r.Context().Value(MyInfoCtx).(*repository.User)
+	myInfo := r.Context().Value(MyInfoCtx).(*domain.User)
 	h.successResponse(w, r, "获取个人信息成功", myInfo)
 }
 
 func (h *Handler) UpdateMyPassword(w http.ResponseWriter, r *http.Request) {
-	myInfo := r.Context().Value(MyInfoCtx).(*repository.User)
+	myInfo := r.Context().Value(MyInfoCtx).(*domain.User)
 
 	var req struct {
 		OldPassword string `json:"oldPassword" validate:"required"`

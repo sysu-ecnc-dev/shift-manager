@@ -13,6 +13,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/domain"
 )
 
 type ResponseWriter struct {
@@ -107,10 +108,10 @@ func (h *Handler) myInfo(next http.Handler) http.Handler {
 	})
 }
 
-func (h *Handler) RequiredRole(roles []string) func(next http.Handler) http.Handler {
+func (h *Handler) RequiredRole(roles []domain.Role) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			role := r.Context().Value(RoleCtxKey).(string)
+			role := r.Context().Value(RoleCtxKey).(domain.Role)
 			if !slices.Contains(roles, role) {
 				h.errorResponse(w, r, "权限不足")
 				return
@@ -129,9 +130,6 @@ func (h *Handler) userInfo(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx, cancel := context.WithTimeout(r.Context(), time.Duration(h.config.Database.QueryTimeout)*time.Second)
-		defer cancel()
-
 		user, err := h.repository.GetUserByID(userID)
 		if err != nil {
 			switch {
@@ -143,7 +141,7 @@ func (h *Handler) userInfo(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx = context.WithValue(r.Context(), UserInfoCtx, user)
+		ctx := context.WithValue(r.Context(), UserInfoCtx, user)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

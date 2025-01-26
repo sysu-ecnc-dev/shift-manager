@@ -9,6 +9,7 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/redis/go-redis/v9"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/config"
+	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/domain"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/repository"
 )
 
@@ -64,7 +65,7 @@ func (h *Handler) RegisterRoutes() {
 		})
 
 		r.Route("/users", func(r chi.Router) {
-			r.Use(h.RequiredRole([]string{"黑心"}))
+			r.Use(h.RequiredRole([]domain.Role{domain.RoleBlackCore}))
 			r.Get("/", h.GetAllUsers)
 			r.Post("/", h.CreateUser)
 			r.Route("/{userID}", func(r chi.Router) {
@@ -73,6 +74,18 @@ func (h *Handler) RegisterRoutes() {
 				r.Patch("/", h.UpdateUser)
 				r.Delete("/", h.DeleteUser)
 			})
+		})
+
+		r.Route("/schedule-template-meta", func(r chi.Router) {
+			r.Use(h.RequiredRole([]domain.Role{domain.RoleBlackCore}))
+			r.Get("/", h.GetAllScheduleTemplateMeta)
+			r.Patch("/{id}", h.UpdateScheduleTemplateMeta)
+		})
+		r.Route("/schedule-templates", func(r chi.Router) {
+			r.Use(h.RequiredRole([]domain.Role{domain.RoleBlackCore}))
+			r.Get("/{id}", h.GetScheduleTemplate)
+			r.Delete("/{id}", h.DeleteScheduleTemplate)
+			r.Post("/", h.CreateScheduleTemplate)
 		})
 	})
 }

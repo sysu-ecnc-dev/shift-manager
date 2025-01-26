@@ -9,7 +9,7 @@ import (
 type Config struct {
 	Environment string `env:"ENVIRONMENT" envDefault:"development"`
 	Server      struct {
-		Port            string `env:"PORT" envDefault:"8080"`
+		Port            string `env:"PORT" envDefault:"3000"`
 		ReadTimeout     int    `env:"READ_TIMEOUT" envDefault:"10"`
 		WriteTimeout    int    `env:"WRITE_TIMEOUT" envDefault:"15"`
 		IdleTimeout     int    `env:"IDLE_TIMEOUT" envDefault:"60"`

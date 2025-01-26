@@ -1,4 +1,4 @@
-package utils
+package domain
 
 type MailMessage struct {
 	Type string `json:"type"`

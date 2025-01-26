@@ -12,6 +12,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/domain"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/utils"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -146,10 +147,10 @@ func (h *Handler) RequestResetPassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 准备邮件
-	mailMessage := utils.MailMessage{
+	mailMessage := domain.MailMessage{
 		Type: "reset_password",
 		To:   user.Email,
-		Data: utils.ResetPasswordMailData{
+		Data: domain.ResetPasswordMailData{
 			FullName:   user.FullName,
 			OTP:        otp,
 			Expiration: h.config.OTP.Expiration / 60, // 邮件中显示的过期时间以分钟为单位，而配置中以秒为单位
