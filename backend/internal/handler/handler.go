@@ -68,7 +68,7 @@ func (h *Handler) RegisterRoutes() {
 			r.Use(h.RequiredRole([]domain.Role{domain.RoleBlackCore}))
 			r.Get("/", h.GetAllUsers)
 			r.Post("/", h.CreateUser)
-			r.Route("/{userID}", func(r chi.Router) {
+			r.Route("/{id}", func(r chi.Router) {
 				r.Use(h.userInfo)
 				r.Get("/", h.GetUserInfo)
 				r.Patch("/", h.UpdateUser)
@@ -79,13 +79,20 @@ func (h *Handler) RegisterRoutes() {
 		r.Route("/schedule-template-meta", func(r chi.Router) {
 			r.Use(h.RequiredRole([]domain.Role{domain.RoleBlackCore}))
 			r.Get("/", h.GetAllScheduleTemplateMeta)
-			r.Patch("/{id}", h.UpdateScheduleTemplateMeta)
+			r.Route("/{id}", func(r chi.Router) {
+				r.Use(h.scheduleTemplateMeta)
+				r.Get("/", h.GetScheduleTemplateMeta)
+				r.Patch("/", h.UpdateScheduleTemplateMeta)
+				r.Delete("/", h.DeleteScheduleTemplateMeta)
+			})
 		})
 		r.Route("/schedule-templates", func(r chi.Router) {
 			r.Use(h.RequiredRole([]domain.Role{domain.RoleBlackCore}))
-			r.Get("/{id}", h.GetScheduleTemplate)
-			r.Delete("/{id}", h.DeleteScheduleTemplate)
 			r.Post("/", h.CreateScheduleTemplate)
+			r.Route("/{id}", func(r chi.Router) {
+				r.Use(h.scheduleTemplate)
+				r.Get("/", h.GetScheduleTemplate)
+			})
 		})
 	})
 }

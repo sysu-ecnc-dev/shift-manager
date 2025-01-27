@@ -7,10 +7,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/jackc/pgx/v5"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/domain"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/utils"
@@ -41,7 +41,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	user, err := h.repository.GetUserByUsername(req.Username)
 	if err != nil {
 		switch {
-		case errors.Is(err, pgx.ErrNoRows):
+		case errors.Is(err, sql.ErrNoRows):
 			h.errorResponse(w, r, "用户名不存在或密码错误")
 		default:
 			h.internalServerError(w, r, err)
@@ -68,7 +68,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 			ExpiresAt: jwt.NewNumericDate(expiration),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			NotBefore: jwt.NewNumericDate(time.Now()),
-			Subject:   user.ID.String(),
+			Subject:   strconv.FormatInt(user.ID, 10),
 		},
 	})
 	ss, err := token.SignedString([]byte(h.config.JWT.Secret))
@@ -126,7 +126,7 @@ func (h *Handler) RequestResetPassword(w http.ResponseWriter, r *http.Request) {
 	user, err := h.repository.GetUserByUsername(req.Username)
 	if err != nil {
 		switch {
-		case errors.Is(err, pgx.ErrNoRows):
+		case errors.Is(err, sql.ErrNoRows):
 			// 这里虽然已经知道了用户不存在，但是为了安全起见，还是告诉客户端邮件已发送，以防止接口被滥用
 			h.successResponse(w, r, "重置密码所需验证码已通过邮件发送", nil)
 		default:

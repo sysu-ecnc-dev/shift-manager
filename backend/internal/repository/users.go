@@ -4,11 +4,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/domain"
 )
 
-func (r *Repository) GetUserByID(id uuid.UUID) (*domain.User, error) {
+func (r *Repository) GetUserByID(id int64) (*domain.User, error) {
 	query := `
 		SELECT username, password_hash, full_name, email, role, is_active, created_at, version
 		FROM users WHERE id = $1
@@ -106,7 +105,7 @@ func (r *Repository) GetAllUsers() ([]*domain.User, error) {
 	return users, nil
 }
 
-func (r *Repository) DeleteUser(id uuid.UUID) error {
+func (r *Repository) DeleteUser(id int64) error {
 	query := `
 		DELETE FROM users WHERE id = $1
 	`

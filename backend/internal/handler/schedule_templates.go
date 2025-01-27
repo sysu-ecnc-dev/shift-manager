@@ -9,28 +9,6 @@ import (
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/utils"
 )
 
-func (h *Handler) GetAllScheduleTemplateMeta(w http.ResponseWriter, r *http.Request) {
-	stms, err := h.repository.GetAllScheduleTemplatesMeta()
-	if err != nil {
-		h.internalServerError(w, r, err)
-		return
-	}
-
-	h.successResponse(w, r, "获取所有模板元数据成功", stms)
-}
-
-func (h *Handler) UpdateScheduleTemplateMeta(w http.ResponseWriter, r *http.Request) {
-
-}
-
-func (h *Handler) GetScheduleTemplate(w http.ResponseWriter, r *http.Request) {
-
-}
-
-func (h *Handler) DeleteScheduleTemplate(w http.ResponseWriter, r *http.Request) {
-
-}
-
 func (h *Handler) CreateScheduleTemplate(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Meta struct {
@@ -95,4 +73,10 @@ func (h *Handler) CreateScheduleTemplate(w http.ResponseWriter, r *http.Request)
 	}
 
 	h.successResponse(w, r, "创建模板成功", stm)
+}
+
+func (h *Handler) GetScheduleTemplate(w http.ResponseWriter, r *http.Request) {
+	st := r.Context().Value(ScheduleTemplateCtx).(*domain.ScheduleTemplate)
+
+	h.successResponse(w, r, "获取模板成功", st)
 }
