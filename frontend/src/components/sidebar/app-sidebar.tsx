@@ -14,7 +14,7 @@ import NavSecond from "@/components/sidebar/nav-second";
 import NavUser from "./nav-user";
 export default function AppSidebar() {
   return (
-    <Sidebar variant="floating">
+    <Sidebar collapsible="icon" variant="floating">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>

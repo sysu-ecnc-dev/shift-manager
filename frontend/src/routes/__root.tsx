@@ -2,6 +2,7 @@ import { createRootRoute, Outlet } from "@tanstack/react-router";
 import { lazy } from "react";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Toaster } from "@/components/ui/sonner";
+import ThemeProvider from "@/components/provider/theme-provider";
 
 const TanStackRouterDevtools =
   process.env.NODE_ENV === "production"
@@ -17,11 +18,11 @@ const TanStackRouterDevtools =
 
 export const Route = createRootRoute({
   component: () => (
-    <>
+    <ThemeProvider>
       <Outlet />
       <TanStackRouterDevtools />
       <ReactQueryDevtools initialIsOpen={false} />
       <Toaster />
-    </>
+    </ThemeProvider>
   ),
 });
