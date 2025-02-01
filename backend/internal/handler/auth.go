@@ -85,7 +85,6 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   false,
-		SameSite: http.SameSiteNoneMode,
 	}
 
 	if h.config.Environment == "production" {
