@@ -24,11 +24,11 @@ export default function NavUser() {
 
   const {
     data: myInfo,
-    isFetching,
+    isPending,
     isError,
     error,
   } = useQuery({
-    queryKey: ["me"],
+    queryKey: ["my-info"],
     queryFn: () => getMyInfo().then((res) => res.data.data),
   });
 
@@ -44,7 +44,7 @@ export default function NavUser() {
     },
   });
 
-  if (isFetching) return null;
+  if (isPending) return null;
 
   if (isError) {
     toast.error(error.message);
@@ -65,9 +65,9 @@ export default function NavUser() {
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">
-                  {myInfo?.fullName}({myInfo?.role})
+                  {myInfo.fullName}({myInfo.role})
                 </span>
-                <span className="truncate text-xs">{myInfo?.email}</span>
+                <span className="truncate text-xs">{myInfo.email}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>

@@ -23,7 +23,7 @@ export default function LoginForm() {
     mutationFn: (data: z.infer<typeof schema>) =>
       login(data).then((res) => res.data),
     onSuccess: (data) => {
-      queryClient.setQueryData(["me"], data.data);
+      queryClient.setQueryData(["my-info"], data.data);
       navigate({ to: "/", replace: true });
       toast.success("登录成功");
     },
