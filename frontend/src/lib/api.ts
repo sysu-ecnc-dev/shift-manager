@@ -3,6 +3,8 @@ import { User } from "@/lib/types";
 
 export const api = axios.create({
   baseURL: "/api",
+  timeout: 5000,
+  withCredentials: true,
 });
 
 export type UnifiedResponse<T> = {
@@ -21,3 +23,7 @@ api.interceptors.response.use((response) => {
 
 export const login = (data: { username: string; password: string }) =>
   api.post<UnifiedResponse<User>>("/auth/login", data);
+
+export const logout = () => api.post<UnifiedResponse<null>>("/auth/logout");
+
+export const getMyInfo = () => api.get<UnifiedResponse<User>>("/my-info");

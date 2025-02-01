@@ -4,7 +4,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { login } from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { PendingButton } from "@/components/ui/pending-button";
+import { PendingButton } from "@/components/pending-button";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
