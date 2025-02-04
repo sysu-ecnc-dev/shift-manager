@@ -97,7 +97,7 @@ func (h *Handler) RequireChangeEmail(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(h.config.Redis.OperationExpiration)*time.Minute)
 	defer cancel()
 
-	if err := h.redisClient.Set(ctx, fmt.Sprintf("%s_email_otp", myInfo.Username), otp, time.Duration(h.config.OTP.Expiration)*time.Minute).Err(); err != nil {
+	if err := h.redisClient.Set(ctx, fmt.Sprintf("otp_%s_change_email_to_%s", myInfo.Username, req.NewEmail), otp, time.Duration(h.config.OTP.Expiration)*time.Minute).Err(); err != nil {
 		h.internalServerError(w, r, err)
 		return
 	}
@@ -164,7 +164,7 @@ func (h *Handler) VerifyOTPAndChangeEmail(w http.ResponseWriter, r *http.Request
 	ctx, cancel := context.WithTimeout(r.Context(), time.Duration(h.config.Redis.OperationExpiration)*time.Minute)
 	defer cancel()
 
-	otp, err := h.redisClient.Get(ctx, fmt.Sprintf("%s_email_otp", myInfo.Username)).Result()
+	otp, err := h.redisClient.Get(ctx, fmt.Sprintf("otp_%s_change_email_to_%s", myInfo.Username, req.NewEmail)).Result()
 	if err != nil {
 		h.errorResponse(w, r, "验证码错误")
 		return
@@ -183,7 +183,7 @@ func (h *Handler) VerifyOTPAndChangeEmail(w http.ResponseWriter, r *http.Request
 	}
 
 	// 删除 OTP
-	if err := h.redisClient.Del(ctx, fmt.Sprintf("%s_email_otp", myInfo.Username)).Err(); err != nil {
+	if err := h.redisClient.Del(ctx, fmt.Sprintf("otp_%s_change_email_to_%s", myInfo.Username, req.NewEmail)).Err(); err != nil {
 		h.internalServerError(w, r, err)
 		return
 	}
