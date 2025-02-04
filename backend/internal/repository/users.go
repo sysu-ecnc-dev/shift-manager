@@ -138,3 +138,19 @@ func (r *Repository) CreateUser(user *domain.User) error {
 
 	return nil
 }
+
+func (r *Repository) CheckEmailIfExists(email string) (bool, error) {
+	isExists := false
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(r.cfg.Database.QueryTimeout)*time.Second)
+	defer cancel()
+
+	query := `
+		SELECT EXISTS (SELECT 1 FROM users WHERE email = $1)
+	`
+	if err := r.dbpool.QueryRowContext(ctx, query, email).Scan(&isExists); err != nil {
+		return false, err
+	}
+
+	return isExists, nil
+}

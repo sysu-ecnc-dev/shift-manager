@@ -62,6 +62,10 @@ func (h *Handler) RegisterRoutes() {
 			r.Use(h.myInfo)
 			r.Get("/", h.GetMyInfo)
 			r.Patch("/password", h.UpdateMyPassword)
+			r.Route("/change-email", func(r chi.Router) {
+				r.Post("/require", h.RequireChangeEmail)
+				r.Post("/confirm", h.VerifyOTPAndChangeEmail)
+			})
 		})
 
 		r.Route("/users", func(r chi.Router) {

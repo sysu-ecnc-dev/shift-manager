@@ -17,3 +17,9 @@ type ResetPasswordMailData struct {
 	OTP        string `json:"otp"`
 	Expiration int    `json:"expiration"`
 }
+
+type ChangeEmailMailData struct {
+	FullName   string `json:"fullName"`
+	OTP        string `json:"otp"`
+	Expiration int    `json:"expiration"`
+}

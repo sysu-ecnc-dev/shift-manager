@@ -173,6 +173,19 @@ func main() {
 						continue
 					}
 					mail.Subject("ECNC 假勤系统 - 重置密码")
+				case "change_email":
+					tmpl, err := template.ParseFiles("./templates/change_email_email.html")
+					if err != nil {
+						logger.Error("无法解析邮件模板", slog.String("error", err.Error()))
+						_ = msg.Nack(false, false)
+						continue
+					}
+					if err := mail.SetBodyHTMLTemplate(tmpl, mailMessage.Data); err != nil {
+						logger.Error("无法设置邮件正文", slog.String("error", err.Error()))
+						_ = msg.Nack(false, false)
+						continue
+					}
+					mail.Subject("ECNC 假勤系统 - 修改邮箱")
 				default:
 					logger.Error("不支持的邮件类型", slog.String("type", mailMessage.Type))
 					_ = msg.Nack(false, false)
