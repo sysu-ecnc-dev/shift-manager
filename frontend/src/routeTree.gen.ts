@@ -15,6 +15,9 @@ import { Route as AuthImport } from './routes/auth'
 import { Route as DashboardImport } from './routes/_dashboard'
 import { Route as DashboardIndexImport } from './routes/_dashboard/index'
 import { Route as AuthLoginImport } from './routes/auth/login'
+import { Route as DashboardSettingsImport } from './routes/_dashboard/settings'
+import { Route as DashboardSettingsIndexImport } from './routes/_dashboard/settings/index'
+import { Route as DashboardSettingsAccountImport } from './routes/_dashboard/settings/account'
 
 // Create/Update Routes
 
@@ -41,6 +44,24 @@ const AuthLoginRoute = AuthLoginImport.update({
   getParentRoute: () => AuthRoute,
 } as any)
 
+const DashboardSettingsRoute = DashboardSettingsImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => DashboardRoute,
+} as any)
+
+const DashboardSettingsIndexRoute = DashboardSettingsIndexImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardSettingsRoute,
+} as any)
+
+const DashboardSettingsAccountRoute = DashboardSettingsAccountImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => DashboardSettingsRoute,
+} as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -59,6 +80,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthImport
       parentRoute: typeof rootRoute
     }
+    '/_dashboard/settings': {
+      id: '/_dashboard/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof DashboardSettingsImport
+      parentRoute: typeof DashboardImport
+    }
     '/auth/login': {
       id: '/auth/login'
       path: '/login'
@@ -73,16 +101,45 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexImport
       parentRoute: typeof DashboardImport
     }
+    '/_dashboard/settings/account': {
+      id: '/_dashboard/settings/account'
+      path: '/account'
+      fullPath: '/settings/account'
+      preLoaderRoute: typeof DashboardSettingsAccountImport
+      parentRoute: typeof DashboardSettingsImport
+    }
+    '/_dashboard/settings/': {
+      id: '/_dashboard/settings/'
+      path: '/'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof DashboardSettingsIndexImport
+      parentRoute: typeof DashboardSettingsImport
+    }
   }
 }
 
 // Create and export the route tree
 
+interface DashboardSettingsRouteChildren {
+  DashboardSettingsAccountRoute: typeof DashboardSettingsAccountRoute
+  DashboardSettingsIndexRoute: typeof DashboardSettingsIndexRoute
+}
+
+const DashboardSettingsRouteChildren: DashboardSettingsRouteChildren = {
+  DashboardSettingsAccountRoute: DashboardSettingsAccountRoute,
+  DashboardSettingsIndexRoute: DashboardSettingsIndexRoute,
+}
+
+const DashboardSettingsRouteWithChildren =
+  DashboardSettingsRoute._addFileChildren(DashboardSettingsRouteChildren)
+
 interface DashboardRouteChildren {
+  DashboardSettingsRoute: typeof DashboardSettingsRouteWithChildren
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardSettingsRoute: DashboardSettingsRouteWithChildren,
   DashboardIndexRoute: DashboardIndexRoute,
 }
 
@@ -103,30 +160,53 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 export interface FileRoutesByFullPath {
   '': typeof DashboardRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
+  '/settings': typeof DashboardSettingsRouteWithChildren
   '/auth/login': typeof AuthLoginRoute
   '/': typeof DashboardIndexRoute
+  '/settings/account': typeof DashboardSettingsAccountRoute
+  '/settings/': typeof DashboardSettingsIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
   '/auth/login': typeof AuthLoginRoute
   '/': typeof DashboardIndexRoute
+  '/settings/account': typeof DashboardSettingsAccountRoute
+  '/settings': typeof DashboardSettingsIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/_dashboard': typeof DashboardRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
+  '/_dashboard/settings': typeof DashboardSettingsRouteWithChildren
   '/auth/login': typeof AuthLoginRoute
   '/_dashboard/': typeof DashboardIndexRoute
+  '/_dashboard/settings/account': typeof DashboardSettingsAccountRoute
+  '/_dashboard/settings/': typeof DashboardSettingsIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '' | '/auth' | '/auth/login' | '/'
+  fullPaths:
+    | ''
+    | '/auth'
+    | '/settings'
+    | '/auth/login'
+    | '/'
+    | '/settings/account'
+    | '/settings/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/auth' | '/auth/login' | '/'
-  id: '__root__' | '/_dashboard' | '/auth' | '/auth/login' | '/_dashboard/'
+  to: '/auth' | '/auth/login' | '/' | '/settings/account' | '/settings'
+  id:
+    | '__root__'
+    | '/_dashboard'
+    | '/auth'
+    | '/_dashboard/settings'
+    | '/auth/login'
+    | '/_dashboard/'
+    | '/_dashboard/settings/account'
+    | '/_dashboard/settings/'
   fileRoutesById: FileRoutesById
 }
 
@@ -157,6 +237,7 @@ export const routeTree = rootRoute
     "/_dashboard": {
       "filePath": "_dashboard.tsx",
       "children": [
+        "/_dashboard/settings",
         "/_dashboard/"
       ]
     },
@@ -166,6 +247,14 @@ export const routeTree = rootRoute
         "/auth/login"
       ]
     },
+    "/_dashboard/settings": {
+      "filePath": "_dashboard/settings.tsx",
+      "parent": "/_dashboard",
+      "children": [
+        "/_dashboard/settings/account",
+        "/_dashboard/settings/"
+      ]
+    },
     "/auth/login": {
       "filePath": "auth/login.tsx",
       "parent": "/auth"
@@ -173,6 +262,14 @@ export const routeTree = rootRoute
     "/_dashboard/": {
       "filePath": "_dashboard/index.tsx",
       "parent": "/_dashboard"
+    },
+    "/_dashboard/settings/account": {
+      "filePath": "_dashboard/settings/account.tsx",
+      "parent": "/_dashboard/settings"
+    },
+    "/_dashboard/settings/": {
+      "filePath": "_dashboard/settings/index.tsx",
+      "parent": "/_dashboard/settings"
     }
   }
 }
