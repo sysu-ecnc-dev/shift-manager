@@ -17,7 +17,7 @@ import { Route as DashboardIndexImport } from './routes/_dashboard/index'
 import { Route as AuthLoginImport } from './routes/auth/login'
 import { Route as DashboardSettingsImport } from './routes/_dashboard/settings'
 import { Route as DashboardSettingsIndexImport } from './routes/_dashboard/settings/index'
-import { Route as DashboardSettingsAccountImport } from './routes/_dashboard/settings/account'
+import { Route as DashboardSettingsUpdatePasswordImport } from './routes/_dashboard/settings/update-password'
 
 // Create/Update Routes
 
@@ -56,11 +56,12 @@ const DashboardSettingsIndexRoute = DashboardSettingsIndexImport.update({
   getParentRoute: () => DashboardSettingsRoute,
 } as any)
 
-const DashboardSettingsAccountRoute = DashboardSettingsAccountImport.update({
-  id: '/account',
-  path: '/account',
-  getParentRoute: () => DashboardSettingsRoute,
-} as any)
+const DashboardSettingsUpdatePasswordRoute =
+  DashboardSettingsUpdatePasswordImport.update({
+    id: '/update-password',
+    path: '/update-password',
+    getParentRoute: () => DashboardSettingsRoute,
+  } as any)
 
 // Populate the FileRoutesByPath interface
 
@@ -101,11 +102,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexImport
       parentRoute: typeof DashboardImport
     }
-    '/_dashboard/settings/account': {
-      id: '/_dashboard/settings/account'
-      path: '/account'
-      fullPath: '/settings/account'
-      preLoaderRoute: typeof DashboardSettingsAccountImport
+    '/_dashboard/settings/update-password': {
+      id: '/_dashboard/settings/update-password'
+      path: '/update-password'
+      fullPath: '/settings/update-password'
+      preLoaderRoute: typeof DashboardSettingsUpdatePasswordImport
       parentRoute: typeof DashboardSettingsImport
     }
     '/_dashboard/settings/': {
@@ -121,12 +122,12 @@ declare module '@tanstack/react-router' {
 // Create and export the route tree
 
 interface DashboardSettingsRouteChildren {
-  DashboardSettingsAccountRoute: typeof DashboardSettingsAccountRoute
+  DashboardSettingsUpdatePasswordRoute: typeof DashboardSettingsUpdatePasswordRoute
   DashboardSettingsIndexRoute: typeof DashboardSettingsIndexRoute
 }
 
 const DashboardSettingsRouteChildren: DashboardSettingsRouteChildren = {
-  DashboardSettingsAccountRoute: DashboardSettingsAccountRoute,
+  DashboardSettingsUpdatePasswordRoute: DashboardSettingsUpdatePasswordRoute,
   DashboardSettingsIndexRoute: DashboardSettingsIndexRoute,
 }
 
@@ -163,7 +164,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof DashboardSettingsRouteWithChildren
   '/auth/login': typeof AuthLoginRoute
   '/': typeof DashboardIndexRoute
-  '/settings/account': typeof DashboardSettingsAccountRoute
+  '/settings/update-password': typeof DashboardSettingsUpdatePasswordRoute
   '/settings/': typeof DashboardSettingsIndexRoute
 }
 
@@ -171,7 +172,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
   '/auth/login': typeof AuthLoginRoute
   '/': typeof DashboardIndexRoute
-  '/settings/account': typeof DashboardSettingsAccountRoute
+  '/settings/update-password': typeof DashboardSettingsUpdatePasswordRoute
   '/settings': typeof DashboardSettingsIndexRoute
 }
 
@@ -182,7 +183,7 @@ export interface FileRoutesById {
   '/_dashboard/settings': typeof DashboardSettingsRouteWithChildren
   '/auth/login': typeof AuthLoginRoute
   '/_dashboard/': typeof DashboardIndexRoute
-  '/_dashboard/settings/account': typeof DashboardSettingsAccountRoute
+  '/_dashboard/settings/update-password': typeof DashboardSettingsUpdatePasswordRoute
   '/_dashboard/settings/': typeof DashboardSettingsIndexRoute
 }
 
@@ -194,10 +195,10 @@ export interface FileRouteTypes {
     | '/settings'
     | '/auth/login'
     | '/'
-    | '/settings/account'
+    | '/settings/update-password'
     | '/settings/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/auth' | '/auth/login' | '/' | '/settings/account' | '/settings'
+  to: '/auth' | '/auth/login' | '/' | '/settings/update-password' | '/settings'
   id:
     | '__root__'
     | '/_dashboard'
@@ -205,7 +206,7 @@ export interface FileRouteTypes {
     | '/_dashboard/settings'
     | '/auth/login'
     | '/_dashboard/'
-    | '/_dashboard/settings/account'
+    | '/_dashboard/settings/update-password'
     | '/_dashboard/settings/'
   fileRoutesById: FileRoutesById
 }
@@ -251,7 +252,7 @@ export const routeTree = rootRoute
       "filePath": "_dashboard/settings.tsx",
       "parent": "/_dashboard",
       "children": [
-        "/_dashboard/settings/account",
+        "/_dashboard/settings/update-password",
         "/_dashboard/settings/"
       ]
     },
@@ -263,8 +264,8 @@ export const routeTree = rootRoute
       "filePath": "_dashboard/index.tsx",
       "parent": "/_dashboard"
     },
-    "/_dashboard/settings/account": {
-      "filePath": "_dashboard/settings/account.tsx",
+    "/_dashboard/settings/update-password": {
+      "filePath": "_dashboard/settings/update-password.tsx",
       "parent": "/_dashboard/settings"
     },
     "/_dashboard/settings/": {

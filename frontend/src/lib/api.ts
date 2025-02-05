@@ -27,3 +27,9 @@ export const login = (data: { username: string; password: string }) =>
 export const logout = () => api.post<UnifiedResponse<null>>("/auth/logout");
 
 export const getMyInfo = () => api.get<UnifiedResponse<User>>("/my-info");
+
+export const requireChangeEmail = (data: { newEmail: string }) =>
+  api.post<UnifiedResponse<null>>("/my-info/change-email/require", data);
+
+export const confirmChangeEmail = (data: { newEmail: string; otp: string }) =>
+  api.post<UnifiedResponse<null>>("/my-info/change-email/confirm", data);

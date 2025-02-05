@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LucideIcon, User, Wrench } from "lucide-react";
+import { KeyRound, LucideIcon, Mail } from "lucide-react";
 
 const navItems: {
   label: string;
@@ -8,14 +8,14 @@ const navItems: {
   to: string;
 }[] = [
   {
-    label: "个人信息",
-    icon: User,
+    label: "更改邮箱",
+    icon: Mail,
     to: "/settings",
   },
   {
-    label: "账户设置",
-    icon: Wrench,
-    to: "/settings/account",
+    label: "修改密码",
+    icon: KeyRound,
+    to: "/settings/update-password",
   },
 ];
 
