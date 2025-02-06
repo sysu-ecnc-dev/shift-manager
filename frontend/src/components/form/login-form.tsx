@@ -69,7 +69,7 @@ export default function LoginForm() {
           <div className="flex items-center">
             <Label htmlFor="password">密码</Label>
             <Link
-              to="/auth/login"
+              to="/auth/forget-password"
               className="ml-auto text-sm hover:underline underline-offset-4"
             >
               忘记密码？

@@ -38,3 +38,12 @@ export const updatePassword = (data: {
   oldPassword: string;
   newPassword: string;
 }) => api.patch<UnifiedResponse<null>>("/my-info/password", data);
+
+export const requireResetPassword = (data: { username: string }) =>
+  api.post<UnifiedResponse<null>>("/auth/reset-password/require", data);
+
+export const confirmResetPassword = (data: {
+  username: string;
+  otp: string;
+  password: string;
+}) => api.post<UnifiedResponse<null>>("/auth/reset-password/confirm", data);
