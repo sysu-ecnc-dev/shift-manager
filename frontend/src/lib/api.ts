@@ -33,3 +33,8 @@ export const requireChangeEmail = (data: { newEmail: string }) =>
 
 export const confirmChangeEmail = (data: { newEmail: string; otp: string }) =>
   api.post<UnifiedResponse<null>>("/my-info/change-email/confirm", data);
+
+export const updatePassword = (data: {
+  oldPassword: string;
+  newPassword: string;
+}) => api.patch<UnifiedResponse<null>>("/my-info/password", data);

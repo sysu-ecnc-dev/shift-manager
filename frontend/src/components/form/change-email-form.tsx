@@ -75,36 +75,43 @@ export default function ChangeEmailForm() {
   };
 
   return (
-    <form className="flex flex-col gap-2" onSubmit={handleSubmit(onSubmit)}>
-      <span>邮箱</span>
-      <Input
-        className="w-1/2"
-        placeholder="请输入新邮箱"
-        disabled={requireMutation.isPending || confirmMutation.isPending}
-        {...register("newEmail")}
-      />
-      {errors.newEmail && (
-        <span className="text-destructive text-sm">
-          {errors.newEmail.message}
-        </span>
-      )}
-      <div className="flex w-1/2 gap-4">
+    <form
+      className="flex flex-col gap-2 max-w-lg"
+      onSubmit={handleSubmit(onSubmit)}
+    >
+      <div className="grid gap-2">
+        <span>新邮箱</span>
         <Input
-          placeholder="请输入验证码"
-          {...register("otp")}
+          placeholder="请输入新邮箱"
           disabled={requireMutation.isPending || confirmMutation.isPending}
+          {...register("newEmail")}
         />
-        <Button
-          type="button"
-          onClick={onClickSendOTP}
-          disabled={
-            countdown > 0 ||
-            requireMutation.isPending ||
-            confirmMutation.isPending
-          }
-        >
-          {countdown > 0 ? `重新发送 (${countdown})` : "发送验证码"}
-        </Button>
+        {errors.newEmail && (
+          <span className="text-destructive text-sm">
+            {errors.newEmail.message}
+          </span>
+        )}
+      </div>
+      <div className="grid gap-2">
+        <span>验证码</span>
+        <div className="flex gap-2">
+          <Input
+            placeholder="请输入验证码"
+            {...register("otp")}
+            disabled={requireMutation.isPending || confirmMutation.isPending}
+          />
+          <Button
+            type="button"
+            onClick={onClickSendOTP}
+            disabled={
+              countdown > 0 ||
+              requireMutation.isPending ||
+              confirmMutation.isPending
+            }
+          >
+            {countdown > 0 ? `重新发送 (${countdown})` : "发送验证码"}
+          </Button>
+        </div>
       </div>
       {errors.otp && (
         <span className="text-destructive text-sm">{errors.otp.message}</span>
