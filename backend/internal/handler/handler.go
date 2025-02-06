@@ -52,8 +52,10 @@ func (h *Handler) RegisterRoutes() {
 	h.Mux.Route("/auth", func(r chi.Router) {
 		r.Post("/login", h.Login)
 		r.Post("/logout", h.Logout)
-		r.Post("/request-reset-password", h.RequestResetPassword)
-		r.Post("/reset-password", h.ResetPassword)
+		r.Route("/reset-password", func(r chi.Router) {
+			r.Post("/require", h.RequestResetPassword)
+			r.Post("/confirm", h.ResetPassword)
+		})
 	})
 
 	h.Mux.Group(func(r chi.Router) {
@@ -63,8 +65,7 @@ func (h *Handler) RegisterRoutes() {
 			r.Get("/", h.GetMyInfo)
 			r.Patch("/password", h.UpdateMyPassword)
 			r.Route("/change-email", func(r chi.Router) {
-				r.Post("/require", h.RequireChangeEmail)
-				r.Post("/confirm", h.VerifyOTPAndChangeEmail)
+
 			})
 		})
 

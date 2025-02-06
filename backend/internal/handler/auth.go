@@ -140,7 +140,7 @@ func (h *Handler) RequestResetPassword(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(h.config.Redis.OperationExpiration)*time.Minute)
 	defer cancel()
 
-	if err := h.redisClient.Set(ctx, fmt.Sprintf("%s_otp", user.Username), otp, time.Duration(h.config.OTP.Expiration)*time.Minute).Err(); err != nil {
+	if err := h.redisClient.Set(ctx, fmt.Sprintf("otp_%s_reset_password", user.Username), otp, time.Duration(h.config.OTP.Expiration)*time.Minute).Err(); err != nil {
 		h.internalServerError(w, r, err)
 		return
 	}
@@ -206,7 +206,7 @@ func (h *Handler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), time.Duration(h.config.Redis.OperationExpiration)*time.Minute)
 	defer cancel()
 
-	otp, err := h.redisClient.Get(ctx, fmt.Sprintf("%s_otp", req.Username)).Result()
+	otp, err := h.redisClient.Get(ctx, fmt.Sprintf("otp_%s_reset_password", req.Username)).Result()
 	if err != nil {
 		h.errorResponse(w, r, "验证码错误")
 		return
@@ -214,12 +214,6 @@ func (h *Handler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 
 	if otp != req.OTP {
 		h.errorResponse(w, r, "验证码错误")
-		return
-	}
-
-	// 删除 OTP
-	if err := h.redisClient.Del(ctx, fmt.Sprintf("%s_otp", req.Username)).Err(); err != nil {
-		h.internalServerError(w, r, err)
 		return
 	}
 
@@ -246,6 +240,12 @@ func (h *Handler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 		default:
 			h.internalServerError(w, r, err)
 		}
+		return
+	}
+
+	// 删除 OTP
+	if err := h.redisClient.Del(ctx, fmt.Sprintf("otp_%s_reset_password", req.Username)).Err(); err != nil {
+		h.internalServerError(w, r, err)
 		return
 	}
 
