@@ -125,8 +125,19 @@ const columns: ColumnDef<User>[] = [
         </Badge>
       );
     },
+    filterFn: (row, id, value) => {
+      return value
+        .map((v: string) =>
+          v === "true" ? true : v === "false" ? false : null
+        )
+        .includes(row.getValue(id));
+    },
     meta: {
       title: "状态",
+      options: [
+        { label: "在职", value: "true" },
+        { label: "离职", value: "false" },
+      ],
     },
   },
   {

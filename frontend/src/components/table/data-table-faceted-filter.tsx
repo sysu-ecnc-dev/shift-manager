@@ -1,4 +1,3 @@
-import * as React from "react";
 import { Column } from "@tanstack/react-table";
 import { Check, PlusCircle } from "lucide-react";
 
@@ -109,11 +108,16 @@ export function DataTableFacetedFilter<TData, TValue>({
                       <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />
                     )}
                     <span>{option.label}</span>
-                    {facets?.get(option.value) && (
-                      <span className="ml-auto flex h-4 w-4 items-center justify-center font-mono text-xs">
-                        {facets.get(option.value)}
-                      </span>
-                    )}
+                    {/* 由于可能输入 "true" 或 "false" 作为值，故这里需要考虑将 option.value 转换为布尔值 */}
+                    <span className="ml-auto flex h-4 w-4 items-center justify-center font-mono text-xs">
+                      {facets?.get(
+                        option.value === "true"
+                          ? true
+                          : option.value === "false"
+                            ? false
+                            : option.value
+                      ) || 0}
+                    </span>
                   </CommandItem>
                 );
               })}
