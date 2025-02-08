@@ -3,7 +3,7 @@ export type User = {
   username: string;
   fullName: string;
   email: string;
-  role: string;
+  role: "普通助理" | "资深助理" | "黑心";
   isActive: boolean;
   createdAt: string;
 };

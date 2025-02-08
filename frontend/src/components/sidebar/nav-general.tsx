@@ -20,7 +20,7 @@ const navItems: {
   },
 ];
 
-export default function NavMain() {
+export default function NavGeneral() {
   const { location } = useRouterState();
 
   return (

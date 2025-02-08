@@ -9,10 +9,31 @@ import {
 } from "@/components/ui/sidebar";
 import { Link } from "@tanstack/react-router";
 import { Command } from "lucide-react";
-import NavMain from "@/components/sidebar/nav-main";
-import NavSecond from "@/components/sidebar/nav-second";
-import NavUser from "./nav-user";
+import NavGeneral from "@/components/sidebar/nav-general";
+import NavOther from "@/components/sidebar/nav-other";
+import NavUser from "@/components/sidebar/nav-user";
+import NavManagement from "@/components/sidebar/nav-management";
+import { useQuery } from "@tanstack/react-query";
+import { getMyInfo } from "@/lib/api";
+import { toast } from "sonner";
 export default function AppSidebar() {
+  const {
+    data: myInfo,
+    isPending,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["my-info"],
+    queryFn: () => getMyInfo().then((res) => res.data.data),
+  });
+
+  if (isPending) return null;
+
+  if (isError) {
+    toast.error(error.message);
+    return null;
+  }
+
   return (
     <Sidebar collapsible="icon" variant="floating">
       <SidebarHeader>
@@ -33,8 +54,9 @@ export default function AppSidebar() {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain />
-        <NavSecond />
+        <NavGeneral />
+        {myInfo.role === "黑心" && <NavManagement />}
+        <NavOther />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

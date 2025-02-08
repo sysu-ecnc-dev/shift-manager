@@ -47,3 +47,5 @@ export const confirmResetPassword = (data: {
   otp: string;
   password: string;
 }) => api.post<UnifiedResponse<null>>("/auth/reset-password/confirm", data);
+
+export const getUsers = () => api.get<UnifiedResponse<User[]>>("/users");

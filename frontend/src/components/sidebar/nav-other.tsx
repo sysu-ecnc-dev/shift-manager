@@ -8,7 +8,7 @@ import {
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Code, Settings } from "lucide-react";
 
-export default function NavSecond() {
+export default function NavOther() {
   const settingsReges = /^\/settings/;
   const { location } = useRouterState();
 
