@@ -56,3 +56,8 @@ export const createUser = (data: {
   email: string;
   role: string;
 }) => api.post<UnifiedResponse<User>>("/users", data);
+
+export const updateUser = (
+  id: number,
+  data: { role?: string; isActive?: boolean }
+) => api.patch<UnifiedResponse<User>>(`/users/${id}`, data);
