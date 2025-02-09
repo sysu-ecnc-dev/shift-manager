@@ -26,12 +26,13 @@ import { MoreHorizontalIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import UpdateUserRoleDialog from "@/components/dialog/update-user-role-dialog";
+import UpdateStatusDialog from "@/components/dialog/update-status-dialog";
 
 export default function UsersTable() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [openUpdateUserRoleDialog, setOpenUpdateUserRoleDialog] =
     useState(false);
-
+  const [openUpdateStatusDialog, setOpenUpdateStatusDialog] = useState(false);
   // 表格列定义
   const columns: ColumnDef<User>[] = [
     {
@@ -186,7 +187,14 @@ export default function UsersTable() {
               >
                 更改角色
               </DropdownMenuItem>
-              <DropdownMenuItem>更改状态</DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  setCurrentUser(row.original);
+                  setOpenUpdateStatusDialog(true);
+                }}
+              >
+                更改状态
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-destructive">
                 删除用户
@@ -224,6 +232,13 @@ export default function UsersTable() {
         <UpdateUserRoleDialog
           open={openUpdateUserRoleDialog}
           onOpenChange={setOpenUpdateUserRoleDialog}
+          user={currentUser}
+        />
+      )}
+      {currentUser && (
+        <UpdateStatusDialog
+          open={openUpdateStatusDialog}
+          onOpenChange={setOpenUpdateStatusDialog}
           user={currentUser}
         />
       )}
