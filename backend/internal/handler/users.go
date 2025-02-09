@@ -142,11 +142,6 @@ func (h *Handler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	user := r.Context().Value(UserInfoCtx).(*domain.User)
 
-	// 禁止操作初始管理员
-	if user.Username == h.config.InitialAdmin.Username {
-		h.errorResponse(w, r, "禁止更新初始管理员信息")
-		return
-	}
 	if req.Role != nil {
 		user.Role = domain.Role(*req.Role)
 	}

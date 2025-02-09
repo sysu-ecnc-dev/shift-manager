@@ -147,6 +147,17 @@ func (h *Handler) userInfo(next http.Handler) http.Handler {
 	})
 }
 
+func (h *Handler) preventOperateInitialAdmin(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := r.Context().Value(UserInfoCtx).(*domain.User)
+		if user.Username == h.config.InitialAdmin.Username {
+			h.errorResponse(w, r, "禁止操作初始管理员")
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
 func (h *Handler) scheduleTemplateMeta(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		templateIDParam := chi.URLParam(r, "id")
