@@ -17,3 +17,7 @@ migrate op:
 # 插入随机用户
 seed-users n:
     go run cmd/seed/main.go -op 1 -n {{n}}
+
+# 插入随机班表模板
+seed-schedule-templates n:
+    go run cmd/seed/main.go -op 2 -n {{n}}

@@ -19,7 +19,7 @@ func main() {
 	var op int
 	var n int
 
-	flag.IntVar(&op, "op", 0, "要执行的操作 (1: 插入随机用户)")
+	flag.IntVar(&op, "op", 0, "要执行的操作 (1: 插入随机用户, 2: 插入随机班表模板)")
 	flag.IntVar(&n, "n", 0, "要插入的记录数量")
 	flag.Parse()
 
@@ -61,10 +61,8 @@ func main() {
 	case 0:
 		slog.Error("未指定操作")
 	case 1:
-		if n == 0 {
-			slog.Error("未指定要插入的用户数量")
-		} else if n < 0 {
-			slog.Error("要插入的用户数量不能为负")
+		if n <= 0 {
+			slog.Error("请输入合法的用户数量")
 		} else {
 			cnt := n
 			for i := 0; i < n; i++ {
@@ -83,6 +81,23 @@ func main() {
 			}
 
 			slog.Info("插入用户成功", slog.Int("count", n-cnt))
+		}
+	case 2:
+		if n <= 0 {
+			slog.Error("请输入合法的班表模板数量")
+		} else {
+			cnt := n
+			for i := 0; i < n; i++ {
+				st := utils.GenerateRandomScheduleTemplate()
+				if err := repo.CreateScheduleTemplate(st); err != nil {
+					slog.Error("无法插入班表模板", slog.String("error", err.Error()))
+					continue
+				}
+
+				cnt--
+			}
+
+			slog.Info("插入班表模板成功", slog.Int("count", n-cnt))
 		}
 	default:
 		slog.Error("指定的操作非法")
