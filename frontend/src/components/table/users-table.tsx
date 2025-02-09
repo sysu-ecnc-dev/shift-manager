@@ -27,12 +27,15 @@ import { useState } from "react";
 import { toast } from "sonner";
 import UpdateUserRoleDialog from "@/components/dialog/update-user-role-dialog";
 import UpdateStatusDialog from "@/components/dialog/update-status-dialog";
+import DeleteUserDialog from "../dialog/delete-user-dialog";
 
 export default function UsersTable() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [openUpdateUserRoleDialog, setOpenUpdateUserRoleDialog] =
     useState(false);
   const [openUpdateStatusDialog, setOpenUpdateStatusDialog] = useState(false);
+  const [openDeleteUserDialog, setOpenDeleteUserDialog] = useState(false);
+
   // 表格列定义
   const columns: ColumnDef<User>[] = [
     {
@@ -196,7 +199,13 @@ export default function UsersTable() {
                 更改状态
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive">
+              <DropdownMenuItem
+                className="text-destructive"
+                onClick={() => {
+                  setCurrentUser(row.original);
+                  setOpenDeleteUserDialog(true);
+                }}
+              >
                 删除用户
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -239,6 +248,13 @@ export default function UsersTable() {
         <UpdateStatusDialog
           open={openUpdateStatusDialog}
           onOpenChange={setOpenUpdateStatusDialog}
+          user={currentUser}
+        />
+      )}
+      {currentUser && (
+        <DeleteUserDialog
+          open={openDeleteUserDialog}
+          onOpenChange={setOpenDeleteUserDialog}
           user={currentUser}
         />
       )}

@@ -1,16 +1,19 @@
 import { User } from "@/lib/types";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-} from "@/components/ui/dialog";
+
 import { updateUser } from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { PendingButton } from "@/components/pending-button";
+import {
+  AlertDialog,
+  AlertDialogTitle,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 
 interface Props {
   open: boolean;
@@ -46,22 +49,25 @@ export default function UpdateStatusDialog({
   });
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>更改状态</DialogHeader>
-        <DialogDescription>
-          {user.fullName}({user.username})目前的状态是"
-          {statusMap[String(user.isActive)]}"，你要将其更改为"
-          {statusMap[String(!user.isActive)]}"吗?
-        </DialogDescription>
-        <DialogFooter>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>更改状态</AlertDialogTitle>
+          <AlertDialogDescription>
+            {user.fullName}({user.username})目前的状态是"
+            {statusMap[String(user.isActive)]}"，你要将其更改为"
+            {statusMap[String(!user.isActive)]}"吗?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>取消</AlertDialogCancel>
           {updateStatusMutation.isPending ? (
             <PendingButton />
           ) : (
             <Button onClick={() => updateStatusMutation.mutate()}>确定</Button>
           )}
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

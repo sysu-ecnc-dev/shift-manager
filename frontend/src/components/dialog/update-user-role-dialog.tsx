@@ -25,7 +25,7 @@ export default function UpdateUserRoleDialog({
         <DialogHeader>
           <DialogTitle>变更角色</DialogTitle>
           <DialogDescription>
-            在这里你可以将用户的身份修改为普通助理、资深助理或黑心
+            请选择用户{user.fullName}({user.username})的新角色
           </DialogDescription>
         </DialogHeader>
         <UpdateUserRoleForm user={user} onDialogOpenChange={onOpenChange} />
