@@ -184,14 +184,9 @@ const columns: ColumnDef<User>[] = [
 ];
 
 export default function UsersTable() {
-  const {
-    data: res,
-    isPending,
-    isError,
-    error,
-  } = useQuery({
+  const { data, isPending, isError, error } = useQuery({
     queryKey: ["users"],
-    queryFn: () => getUsers().then((res) => res.data),
+    queryFn: () => getUsers().then((res) => res.data.data),
   });
 
   if (isPending) return null;
@@ -205,7 +200,7 @@ export default function UsersTable() {
     <div className="container mx-auto mt-2">
       <DataTable
         columns={columns}
-        data={res.data}
+        data={data}
         globalSearchPlaceholder="搜索用户..."
       />
     </div>

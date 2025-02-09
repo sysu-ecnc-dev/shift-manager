@@ -49,3 +49,10 @@ export const confirmResetPassword = (data: {
 }) => api.post<UnifiedResponse<null>>("/auth/reset-password/confirm", data);
 
 export const getUsers = () => api.get<UnifiedResponse<User[]>>("/users");
+
+export const createUser = (data: {
+  username: string;
+  fullName: string;
+  email: string;
+  role: string;
+}) => api.post<UnifiedResponse<User>>("/users", data);
