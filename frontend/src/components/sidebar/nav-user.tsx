@@ -60,7 +60,7 @@ export default function NavUser() {
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">
                 <UserIcon className="size-4" />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
@@ -80,7 +80,7 @@ export default function NavUser() {
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <div className="flex items-center justify-center rounded-md bg-primary text-primary-foreground h-8 w-8">
+                <div className="flex items-center justify-center rounded-md bg-secondary text-secondary-foreground h-8 w-8">
                   <UserIcon className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
