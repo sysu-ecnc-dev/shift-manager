@@ -7,3 +7,23 @@ export type User = {
   isActive: boolean;
   createdAt: string;
 };
+
+export type ScheduleTemplateMeta = {
+  id: number;
+  name: string;
+  description: string;
+  createdAt: string;
+};
+
+export type ScheduleTemplateShift = {
+  id: number;
+  startTime: string;
+  endTime: string;
+  requiredAssistantNumber: number;
+  applicableDays: number[];
+};
+
+export type ScheduleTemplate = {
+  meta: ScheduleTemplateMeta;
+  shifts: ScheduleTemplateShift[];
+};

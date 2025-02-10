@@ -98,7 +98,7 @@ export default function UpdatePasswordForm() {
           </span>
         )}
       </div>
-      <div>
+      <div className="mt-2">
         {updatePasswordMutation.isPending ? (
           <PendingButton />
         ) : (

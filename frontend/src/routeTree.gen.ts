@@ -21,6 +21,7 @@ import { Route as DashboardManagementImport } from './routes/_dashboard/manageme
 import { Route as DashboardSettingsIndexImport } from './routes/_dashboard/settings/index'
 import { Route as DashboardSettingsUpdatePasswordImport } from './routes/_dashboard/settings/update-password'
 import { Route as DashboardManagementUsersImport } from './routes/_dashboard/management/users'
+import { Route as DashboardManagementScheduleTemplatesImport } from './routes/_dashboard/management/schedule-templates'
 
 // Create/Update Routes
 
@@ -84,6 +85,13 @@ const DashboardManagementUsersRoute = DashboardManagementUsersImport.update({
   getParentRoute: () => DashboardManagementRoute,
 } as any)
 
+const DashboardManagementScheduleTemplatesRoute =
+  DashboardManagementScheduleTemplatesImport.update({
+    id: '/schedule-templates',
+    path: '/schedule-templates',
+    getParentRoute: () => DashboardManagementRoute,
+  } as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -137,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexImport
       parentRoute: typeof DashboardImport
     }
+    '/_dashboard/management/schedule-templates': {
+      id: '/_dashboard/management/schedule-templates'
+      path: '/schedule-templates'
+      fullPath: '/management/schedule-templates'
+      preLoaderRoute: typeof DashboardManagementScheduleTemplatesImport
+      parentRoute: typeof DashboardManagementImport
+    }
     '/_dashboard/management/users': {
       id: '/_dashboard/management/users'
       path: '/users'
@@ -164,10 +179,13 @@ declare module '@tanstack/react-router' {
 // Create and export the route tree
 
 interface DashboardManagementRouteChildren {
+  DashboardManagementScheduleTemplatesRoute: typeof DashboardManagementScheduleTemplatesRoute
   DashboardManagementUsersRoute: typeof DashboardManagementUsersRoute
 }
 
 const DashboardManagementRouteChildren: DashboardManagementRouteChildren = {
+  DashboardManagementScheduleTemplatesRoute:
+    DashboardManagementScheduleTemplatesRoute,
   DashboardManagementUsersRoute: DashboardManagementUsersRoute,
 }
 
@@ -223,6 +241,7 @@ export interface FileRoutesByFullPath {
   '/auth/forget-password': typeof AuthForgetPasswordRoute
   '/auth/login': typeof AuthLoginRoute
   '/': typeof DashboardIndexRoute
+  '/management/schedule-templates': typeof DashboardManagementScheduleTemplatesRoute
   '/management/users': typeof DashboardManagementUsersRoute
   '/settings/update-password': typeof DashboardSettingsUpdatePasswordRoute
   '/settings/': typeof DashboardSettingsIndexRoute
@@ -234,6 +253,7 @@ export interface FileRoutesByTo {
   '/auth/forget-password': typeof AuthForgetPasswordRoute
   '/auth/login': typeof AuthLoginRoute
   '/': typeof DashboardIndexRoute
+  '/management/schedule-templates': typeof DashboardManagementScheduleTemplatesRoute
   '/management/users': typeof DashboardManagementUsersRoute
   '/settings/update-password': typeof DashboardSettingsUpdatePasswordRoute
   '/settings': typeof DashboardSettingsIndexRoute
@@ -248,6 +268,7 @@ export interface FileRoutesById {
   '/auth/forget-password': typeof AuthForgetPasswordRoute
   '/auth/login': typeof AuthLoginRoute
   '/_dashboard/': typeof DashboardIndexRoute
+  '/_dashboard/management/schedule-templates': typeof DashboardManagementScheduleTemplatesRoute
   '/_dashboard/management/users': typeof DashboardManagementUsersRoute
   '/_dashboard/settings/update-password': typeof DashboardSettingsUpdatePasswordRoute
   '/_dashboard/settings/': typeof DashboardSettingsIndexRoute
@@ -263,6 +284,7 @@ export interface FileRouteTypes {
     | '/auth/forget-password'
     | '/auth/login'
     | '/'
+    | '/management/schedule-templates'
     | '/management/users'
     | '/settings/update-password'
     | '/settings/'
@@ -273,6 +295,7 @@ export interface FileRouteTypes {
     | '/auth/forget-password'
     | '/auth/login'
     | '/'
+    | '/management/schedule-templates'
     | '/management/users'
     | '/settings/update-password'
     | '/settings'
@@ -285,6 +308,7 @@ export interface FileRouteTypes {
     | '/auth/forget-password'
     | '/auth/login'
     | '/_dashboard/'
+    | '/_dashboard/management/schedule-templates'
     | '/_dashboard/management/users'
     | '/_dashboard/settings/update-password'
     | '/_dashboard/settings/'
@@ -334,6 +358,7 @@ export const routeTree = rootRoute
       "filePath": "_dashboard/management.tsx",
       "parent": "/_dashboard",
       "children": [
+        "/_dashboard/management/schedule-templates",
         "/_dashboard/management/users"
       ]
     },
@@ -356,6 +381,10 @@ export const routeTree = rootRoute
     "/_dashboard/": {
       "filePath": "_dashboard/index.tsx",
       "parent": "/_dashboard"
+    },
+    "/_dashboard/management/schedule-templates": {
+      "filePath": "_dashboard/management/schedule-templates.tsx",
+      "parent": "/_dashboard/management"
     },
     "/_dashboard/management/users": {
       "filePath": "_dashboard/management/users.tsx",
