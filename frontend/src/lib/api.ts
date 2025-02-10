@@ -80,3 +80,6 @@ export const createScheduleTemplate = (data: {
     applicableDays: number[];
   }[];
 }) => api.post<UnifiedResponse<ScheduleTemplate>>("/schedule-templates", data);
+
+export const getScheduleTemplate = (id: number) =>
+  api.get<UnifiedResponse<ScheduleTemplate>>(`/schedule-templates/${id}`);

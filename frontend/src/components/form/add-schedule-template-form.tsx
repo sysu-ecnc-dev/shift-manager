@@ -69,7 +69,7 @@ export default function AddScheduleTemplateForm({ onDialogOpenChange }: Props) {
         res.data
       );
       onDialogOpenChange(false);
-      toast.success("模板创建成功");
+      toast.success(res.message);
       form.reset();
     },
     onError: (error) => {
