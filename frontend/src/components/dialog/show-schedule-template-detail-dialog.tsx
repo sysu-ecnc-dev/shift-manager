@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogClose,
@@ -12,8 +13,6 @@ import { DayOfWeek } from "@/lib/const";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { User } from "lucide-react";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -29,7 +28,6 @@ export default function ShowScheduleTemplateDetailDialog({
     data: scheduleTemplate,
     isPending,
     isError,
-    error,
   } = useQuery({
     queryKey: ["schedule-template", scheduleTemplateId],
     queryFn: () =>
@@ -41,7 +39,6 @@ export default function ShowScheduleTemplateDetailDialog({
   }
 
   if (isError) {
-    toast.error(error.message);
     return null;
   }
 

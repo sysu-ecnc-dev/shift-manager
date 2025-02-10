@@ -19,8 +19,9 @@ import {
 import { MoreHorizontalIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import ShowScheduleTemplateDetailDialog from "../dialog/show-schedule-template-detail-dialog";
-import UpdateScheduleTemplateDialog from "../dialog/update-schedule-template-dialog";
+import ShowScheduleTemplateDetailDialog from "@/components/dialog/show-schedule-template-detail-dialog";
+import UpdateScheduleTemplateDialog from "@/components/dialog/update-schedule-template-dialog";
+import DeleteScheduleTemplateDialog from "@/components/dialog/delete-schedule-template-dialog";
 
 export default function ScheduleTemplatesTable() {
   const [
@@ -33,6 +34,10 @@ export default function ScheduleTemplatesTable() {
   const [
     openUpdateScheduleTemplateDialog,
     setOpenUpdateScheduleTemplateDialog,
+  ] = useState(false);
+  const [
+    openDeleteScheduleTemplateDialog,
+    setOpenDeleteScheduleTemplateDialog,
   ] = useState(false);
 
   // 表格列定义
@@ -135,7 +140,13 @@ export default function ScheduleTemplatesTable() {
                 编辑模板
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive">
+              <DropdownMenuItem
+                className="text-destructive"
+                onClick={() => {
+                  setScheduleTemplateId(row.original.id);
+                  setOpenDeleteScheduleTemplateDialog(true);
+                }}
+              >
                 删除模板
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -178,6 +189,13 @@ export default function ScheduleTemplatesTable() {
         <UpdateScheduleTemplateDialog
           open={openUpdateScheduleTemplateDialog}
           onOpenChange={setOpenUpdateScheduleTemplateDialog}
+          scheduleTemplateId={scheduleTemplateId}
+        />
+      )}
+      {scheduleTemplateId && (
+        <DeleteScheduleTemplateDialog
+          open={openDeleteScheduleTemplateDialog}
+          onOpenChange={setOpenDeleteScheduleTemplateDialog}
           scheduleTemplateId={scheduleTemplateId}
         />
       )}

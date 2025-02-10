@@ -92,3 +92,6 @@ export const updateScheduleTemplateMeta = (
     `/schedule-template-meta/${id}`,
     data
   );
+
+export const deleteScheduleTemplate = (id: number) =>
+  api.delete<UnifiedResponse<null>>(`/schedule-template-meta/${id}`);

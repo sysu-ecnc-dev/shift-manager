@@ -1,3 +1,4 @@
+import UpdateScheduleTemplateForm from "@/components/form/update-schedule-template-form";
 import {
   Dialog,
   DialogContent,
@@ -7,8 +8,6 @@ import {
 import { ScheduleTemplateMeta } from "@/lib/types";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import UpdateScheduleTemplateForm from "@/components/form/update-schedule-template-form";
 
 interface Props {
   open: boolean;
@@ -27,7 +26,6 @@ export default function UpdateScheduleTemplateDialog({
   ).find((template) => template.id === scheduleTemplateId);
 
   if (!scheduleTemplateMeta) {
-    toast.error("班表模板不存在");
     return null;
   }
 
