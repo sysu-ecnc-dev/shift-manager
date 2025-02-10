@@ -1,4 +1,4 @@
-import { Calendar, LucideIcon, User } from "lucide-react";
+import { Calendar, LucideIcon, SquareChartGantt, User } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -22,6 +22,11 @@ const navItems: {
     label: "班表模板",
     icon: Calendar,
     href: "/management/schedule-templates",
+  },
+  {
+    label: "排班计划",
+    icon: SquareChartGantt,
+    href: "/management/schedule-plans",
   },
 ];
 
