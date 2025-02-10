@@ -230,7 +230,7 @@ export default function UsersTable() {
 
   return (
     <>
-      <div className="container mx-auto mt-2">
+      <div className="my-2">
         <DataTable
           columns={columns}
           data={data}

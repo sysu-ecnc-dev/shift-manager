@@ -83,3 +83,12 @@ export const createScheduleTemplate = (data: {
 
 export const getScheduleTemplate = (id: number) =>
   api.get<UnifiedResponse<ScheduleTemplate>>(`/schedule-templates/${id}`);
+
+export const updateScheduleTemplateMeta = (
+  id: number,
+  data: { name: string; description: string }
+) =>
+  api.patch<UnifiedResponse<ScheduleTemplateMeta>>(
+    `/schedule-template-meta/${id}`,
+    data
+  );

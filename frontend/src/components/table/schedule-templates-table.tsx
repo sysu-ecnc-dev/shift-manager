@@ -20,6 +20,7 @@ import { MoreHorizontalIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import ShowScheduleTemplateDetailDialog from "../dialog/show-schedule-template-detail-dialog";
+import UpdateScheduleTemplateDialog from "../dialog/update-schedule-template-dialog";
 
 export default function ScheduleTemplatesTable() {
   const [
@@ -29,6 +30,10 @@ export default function ScheduleTemplatesTable() {
   const [scheduleTemplateId, setScheduleTemplateId] = useState<number | null>(
     null
   );
+  const [
+    openUpdateScheduleTemplateDialog,
+    setOpenUpdateScheduleTemplateDialog,
+  ] = useState(false);
 
   // 表格列定义
   const columns: ColumnDef<ScheduleTemplateMeta>[] = [
@@ -121,7 +126,14 @@ export default function ScheduleTemplatesTable() {
               >
                 查看详情
               </DropdownMenuItem>
-              <DropdownMenuItem>编辑模板</DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  setScheduleTemplateId(row.original.id);
+                  setOpenUpdateScheduleTemplateDialog(true);
+                }}
+              >
+                编辑模板
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-destructive">
                 删除模板
@@ -148,7 +160,7 @@ export default function ScheduleTemplatesTable() {
 
   return (
     <>
-      <div className="container mx-auto mt-2">
+      <div className="my-2">
         <DataTable
           columns={columns}
           data={data}
@@ -159,6 +171,13 @@ export default function ScheduleTemplatesTable() {
         <ShowScheduleTemplateDetailDialog
           open={openShowScheduleTemplateDetailDialog}
           onOpenChange={setOpenShowScheduleTemplateDetailDialog}
+          scheduleTemplateId={scheduleTemplateId}
+        />
+      )}
+      {scheduleTemplateId && (
+        <UpdateScheduleTemplateDialog
+          open={openUpdateScheduleTemplateDialog}
+          onOpenChange={setOpenUpdateScheduleTemplateDialog}
           scheduleTemplateId={scheduleTemplateId}
         />
       )}
