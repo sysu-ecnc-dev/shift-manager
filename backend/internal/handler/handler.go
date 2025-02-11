@@ -109,6 +109,7 @@ func (h *Handler) RegisterRoutes() {
 				r.Use(h.schedulePlan)
 				r.Get("/", h.GetSchedulePlanByID)
 				r.With(h.RequiredRole([]domain.Role{domain.RoleBlackCore})).Patch("/", h.UpdateSchedulePlan)
+				r.With(h.RequiredRole([]domain.Role{domain.RoleBlackCore})).Delete("/", h.DeleteSchedulePlan)
 			})
 		})
 	})

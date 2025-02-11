@@ -170,3 +170,18 @@ func (r *Repository) GetSchedulePlanByID(id int64) (*domain.SchedulePlan, error)
 
 	return plan, nil
 }
+
+func (r *Repository) DeleteSchedulePlan(id int64) error {
+	query := `
+		DELETE FROM schedule_plans WHERE id = $1
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(r.cfg.Database.QueryTimeout)*time.Second)
+	defer cancel()
+
+	if _, err := r.dbpool.ExecContext(ctx, query, id); err != nil {
+		return err
+	}
+
+	return nil
+}

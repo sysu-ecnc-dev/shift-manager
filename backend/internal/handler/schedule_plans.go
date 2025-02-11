@@ -78,3 +78,14 @@ func (h *Handler) GetSchedulePlanByID(w http.ResponseWriter, r *http.Request) {
 
 	h.successResponse(w, r, "获取排班计划成功", plan)
 }
+
+func (h *Handler) DeleteSchedulePlan(w http.ResponseWriter, r *http.Request) {
+	plan := r.Context().Value(SchedulePlanCtx).(*domain.SchedulePlan)
+
+	if err := h.repository.DeleteSchedulePlan(plan.ID); err != nil {
+		h.internalServerError(w, r, err)
+		return
+	}
+
+	h.successResponse(w, r, "删除排班计划成功", nil)
+}
