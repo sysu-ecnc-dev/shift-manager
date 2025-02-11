@@ -140,6 +140,15 @@ export default function SchedulePlansTable() {
       },
     },
     {
+      id: "scheduleTemplateName",
+      accessorKey: "scheduleTemplateName",
+      enableHiding: true,
+      header: ({ column }) => <DataTableColumnHeader column={column} />,
+      meta: {
+        title: "排班模板",
+      },
+    },
+    {
       id: "status",
       accessorKey: "status",
       enableHiding: true,
