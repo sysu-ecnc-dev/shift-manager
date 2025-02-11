@@ -172,6 +172,13 @@ export default function SchedulePlansTable() {
       },
       meta: {
         title: "状态",
+        options: [
+          { label: "未开始", value: "未开始", icon: IconClock },
+          { label: "开放提交", value: "开放提交", icon: IconAlarm },
+          { label: "排班中", value: "排班中", icon: IconCalendarStats },
+          { label: "生效中", value: "生效中", icon: IconCheck },
+          { label: "已结束", value: "已结束", icon: IconCoffee },
+        ],
       },
     },
     {
