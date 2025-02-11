@@ -91,12 +91,20 @@ func (h *Handler) RegisterRoutes() {
 				r.Delete("/", h.DeleteScheduleTemplateMeta)
 			})
 		})
+
 		r.Route("/schedule-templates", func(r chi.Router) {
 			r.Use(h.RequiredRole([]domain.Role{domain.RoleBlackCore}))
 			r.Post("/", h.CreateScheduleTemplate)
 			r.Route("/{id}", func(r chi.Router) {
 				r.Use(h.scheduleTemplate)
 				r.Get("/", h.GetScheduleTemplate)
+			})
+		})
+
+		r.Route("/schedule-plans", func(r chi.Router) {
+			r.Group(func(r chi.Router) {
+				r.Use(h.RequiredRole([]domain.Role{domain.RoleBlackCore}))
+				r.Post("/", h.CreateSchedulePlan)
 			})
 		})
 	})

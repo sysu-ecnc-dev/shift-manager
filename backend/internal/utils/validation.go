@@ -39,3 +39,19 @@ func ValidateScheduleTemplateShiftTime(st *domain.ScheduleTemplate) error {
 	}
 	return nil
 }
+
+func ValidateSchedulePlanTime(plan *domain.SchedulePlan) error {
+	if plan.SubmissionStartTime.After(plan.SubmissionEndTime) {
+		return fmt.Errorf("提交开始时间不能晚于提交结束时间")
+	}
+
+	if plan.ActiveStartTime.After(plan.ActiveEndTime) {
+		return fmt.Errorf("生效开始时间不能晚于生效结束时间")
+	}
+
+	if plan.ActiveStartTime.Before(plan.SubmissionEndTime) {
+		return fmt.Errorf("生效开始时间不能早于提交结束时间")
+	}
+
+	return nil
+}
