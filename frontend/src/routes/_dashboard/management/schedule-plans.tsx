@@ -1,3 +1,4 @@
+import SchedulePlansTable from "@/components/table/schedule-plans-table";
 import { Button } from "@/components/ui/button";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -18,6 +19,7 @@ function RouteComponent() {
           </div>
           <Button>添加排班计划</Button>
         </div>
+        <SchedulePlansTable />
       </div>
     </>
   );

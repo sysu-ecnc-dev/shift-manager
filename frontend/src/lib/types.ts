@@ -27,3 +27,15 @@ export type ScheduleTemplate = {
   meta: ScheduleTemplateMeta;
   shifts: ScheduleTemplateShift[];
 };
+
+export type SchedulePlan = {
+  id: number;
+  name: string;
+  submissionStartTime: string;
+  submissionEndTime: string;
+  activeStartTime: string;
+  activeEndTime: string;
+  scheduleTemplateName: string;
+  status: "未开始" | "开放提交" | "排班中" | "生效中" | "已结束";
+  createdAt: string;
+};

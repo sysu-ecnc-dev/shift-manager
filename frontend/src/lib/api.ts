@@ -1,5 +1,10 @@
 import axios from "axios";
-import { ScheduleTemplate, ScheduleTemplateMeta, User } from "@/lib/types";
+import {
+  SchedulePlan,
+  ScheduleTemplate,
+  ScheduleTemplateMeta,
+  User,
+} from "@/lib/types";
 
 export const api = axios.create({
   baseURL: "/api",
@@ -95,3 +100,6 @@ export const updateScheduleTemplateMeta = (
 
 export const deleteScheduleTemplate = (id: number) =>
   api.delete<UnifiedResponse<null>>(`/schedule-template-meta/${id}`);
+
+export const getSchedulePlans = () =>
+  api.get<UnifiedResponse<SchedulePlan[]>>("/schedule-plans");
