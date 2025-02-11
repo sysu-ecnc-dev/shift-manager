@@ -122,3 +122,39 @@ func (r *Repository) GetSchedulePlanByID(id int64) (*domain.SchedulePlan, error)
 
 	return plan, nil
 }
+
+func (r *Repository) UpdateSchedulePlan(plan *domain.SchedulePlan) error {
+	query := `
+		UPDATE schedule_plans 
+		SET
+			name = $1,
+			description = $2,
+			submission_start_time = $3,
+			submission_end_time = $4,
+			active_start_time = $5,
+			active_end_time = $6,
+			version = version + 1
+		WHERE id = $7 AND version = $8
+		RETURNING version
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(r.cfg.Database.QueryTimeout)*time.Second)
+	defer cancel()
+
+	params := []any{
+		plan.Name,
+		plan.Description,
+		plan.SubmissionStartTime,
+		plan.SubmissionEndTime,
+		plan.ActiveStartTime,
+		plan.ActiveEndTime,
+		plan.ID,
+		plan.Version,
+	}
+
+	if err := r.dbpool.QueryRowContext(ctx, query, params...).Scan(&plan.Version); err != nil {
+		return err
+	}
+
+	return nil
+}

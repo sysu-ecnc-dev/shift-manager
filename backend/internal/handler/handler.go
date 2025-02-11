@@ -65,7 +65,8 @@ func (h *Handler) RegisterRoutes() {
 			r.Get("/", h.GetMyInfo)
 			r.Patch("/password", h.UpdateMyPassword)
 			r.Route("/change-email", func(r chi.Router) {
-
+				r.Post("/require", h.RequireChangeEmail)
+				r.Post("/confirm", h.VerifyOTPAndChangeEmail)
 			})
 		})
 
@@ -104,10 +105,10 @@ func (h *Handler) RegisterRoutes() {
 		r.Route("/schedule-plans", func(r chi.Router) {
 			r.Get("/", h.GetAllSchedulePlans)
 			r.With(h.schedulePlan).Get("/{id}", h.GetSchedulePlanByID)
-			r.Group(func(r chi.Router) {
-				r.Use(h.RequiredRole([]domain.Role{domain.RoleBlackCore}))
-				r.Post("/", h.CreateSchedulePlan)
-			})
+
+			// 以下 API 只能够黑心调用
+			r.With(h.RequiredRole([]domain.Role{domain.RoleBlackCore})).Post("/", h.CreateSchedulePlan)
+			r.With(h.RequiredRole([]domain.Role{domain.RoleBlackCore})).With(h.schedulePlan).Patch("/{id}", h.UpdateSchedulePlan)
 		})
 	})
 }

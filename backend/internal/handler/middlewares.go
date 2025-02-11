@@ -14,6 +14,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/domain"
+	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/utils"
 )
 
 type ResponseWriter struct {
@@ -227,6 +228,8 @@ func (h *Handler) schedulePlan(next http.Handler) http.Handler {
 			}
 			return
 		}
+
+		sp.Status = utils.CalculateSchedulePlanStatus(sp)
 
 		ctx := context.WithValue(r.Context(), SchedulePlanCtx, sp)
 		next.ServeHTTP(w, r.WithContext(ctx))
