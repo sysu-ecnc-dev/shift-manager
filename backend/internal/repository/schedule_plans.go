@@ -140,6 +140,7 @@ func (r *Repository) GetSchedulePlanByID(id int64) (*domain.SchedulePlan, error)
 			submission_end_time, 
 			active_start_time, 
 			active_end_time, 
+			(SELECT name FROM schedule_template_meta WHERE id = schedule_template_id) AS schedule_template_name,
 			created_at, 
 			version
 		FROM schedule_plans
@@ -160,6 +161,7 @@ func (r *Repository) GetSchedulePlanByID(id int64) (*domain.SchedulePlan, error)
 		&plan.SubmissionEndTime,
 		&plan.ActiveStartTime,
 		&plan.ActiveEndTime,
+		&plan.ScheduleTemplateName,
 		&plan.CreatedAt,
 		&plan.Version,
 	}
