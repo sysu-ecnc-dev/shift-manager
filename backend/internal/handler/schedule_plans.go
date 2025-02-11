@@ -67,3 +67,16 @@ func (h *Handler) CreateSchedulePlan(w http.ResponseWriter, r *http.Request) {
 
 	h.successResponse(w, r, "创建排班计划成功", plan)
 }
+
+func (h *Handler) GetAllSchedulePlans(w http.ResponseWriter, r *http.Request) {
+	plans, err := h.repository.GetAllSchedulePlans()
+	if err != nil {
+		h.internalServerError(w, r, err)
+	}
+
+	for _, plan := range plans {
+		plan.Status = utils.CalculateSchedulePlanStatus(plan)
+	}
+
+	h.successResponse(w, r, "获取所有排班计划成功", plans)
+}

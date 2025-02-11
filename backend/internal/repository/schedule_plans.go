@@ -31,3 +31,54 @@ func (r *Repository) InsertSchedulePlan(plan *domain.SchedulePlan) error {
 
 	return nil
 }
+
+func (r *Repository) GetAllSchedulePlans() ([]*domain.SchedulePlan, error) {
+	query := `
+		SELECT 
+			id, 
+			name, 
+			description, 
+			submission_start_time, 
+			submission_end_time, 
+			active_start_time, 
+			active_end_time, 
+			created_at, 
+			version
+		FROM schedule_plans
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(r.cfg.Database.QueryTimeout)*time.Second)
+	defer cancel()
+
+	rows, err := r.dbpool.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	plans := []*domain.SchedulePlan{}
+	for rows.Next() {
+		var plan domain.SchedulePlan
+		dst := []any{
+			&plan.ID,
+			&plan.Name,
+			&plan.Description,
+			&plan.SubmissionStartTime,
+			&plan.SubmissionEndTime,
+			&plan.ActiveStartTime,
+			&plan.ActiveEndTime,
+			&plan.CreatedAt,
+			&plan.Version,
+		}
+		if err := rows.Scan(dst...); err != nil {
+			return nil, err
+		}
+		plans = append(plans, &plan)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return plans, nil
+}

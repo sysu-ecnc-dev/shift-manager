@@ -102,6 +102,7 @@ func (h *Handler) RegisterRoutes() {
 		})
 
 		r.Route("/schedule-plans", func(r chi.Router) {
+			r.Get("/", h.GetAllSchedulePlans)
 			r.Group(func(r chi.Router) {
 				r.Use(h.RequiredRole([]domain.Role{domain.RoleBlackCore}))
 				r.Post("/", h.CreateSchedulePlan)
