@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"flag"
 	"log/slog"
+	"math/rand"
 	"os"
 	"time"
 
@@ -103,9 +104,19 @@ func main() {
 		if n <= 0 {
 			slog.Error("请输入合法的排班计划数量")
 		} else {
+			// 先获取所有模板的元数据
+			stms, err := repo.GetAllScheduleTemplatesMeta()
+			if err != nil {
+				slog.Error("无法获取所有模板的元数据", slog.String("error", err.Error()))
+				return
+			}
+
 			cnt := n
 			for i := 0; i < n; i++ {
-				plan := utils.GenerateRandomSchedulePlan()
+				// 随机选一个模板
+				stm := stms[rand.Intn(len(stms))]
+
+				plan := utils.GenerateRandomSchedulePlan(stm.Name)
 				if err := repo.InsertSchedulePlan(plan); err != nil {
 					slog.Error("无法插入排班计划", slog.String("error", err.Error()))
 					continue

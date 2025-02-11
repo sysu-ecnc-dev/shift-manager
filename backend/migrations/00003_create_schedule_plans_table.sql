@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS schedule_plans(
     submission_end_time TIMESTAMPTZ NOT NULL,
     active_start_time TIMESTAMPTZ NOT NULL,
     active_end_time TIMESTAMPTZ NOT NULL,
+    schedule_template_id BIGINT NOT NULL REFERENCES schedule_template_meta(id),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     version INT NOT NULL DEFAULT 1
 );

@@ -103,12 +103,13 @@ func (h *Handler) RegisterRoutes() {
 		})
 
 		r.Route("/schedule-plans", func(r chi.Router) {
-			r.Get("/", h.GetAllSchedulePlans)
-			r.With(h.schedulePlan).Get("/{id}", h.GetSchedulePlanByID)
-
-			// 以下 API 只能够黑心调用
 			r.With(h.RequiredRole([]domain.Role{domain.RoleBlackCore})).Post("/", h.CreateSchedulePlan)
-			r.With(h.RequiredRole([]domain.Role{domain.RoleBlackCore})).With(h.schedulePlan).Patch("/{id}", h.UpdateSchedulePlan)
+			r.Get("/", h.GetAllSchedulePlans)
+			r.Route("/{id}", func(r chi.Router) {
+				r.Use(h.schedulePlan)
+				r.Get("/", h.GetSchedulePlanByID)
+				r.With(h.RequiredRole([]domain.Role{domain.RoleBlackCore})).Patch("/", h.UpdateSchedulePlan)
+			})
 		})
 	})
 }

@@ -13,14 +13,15 @@ const (
 )
 
 type SchedulePlan struct {
-	ID                  int64              `json:"id"`
-	Name                string             `json:"name"`
-	Description         string             `json:"description"`
-	SubmissionStartTime time.Time          `json:"submissionStartTime"`
-	SubmissionEndTime   time.Time          `json:"submissionEndTime"`
-	ActiveStartTime     time.Time          `json:"activeStartTime"`
-	ActiveEndTime       time.Time          `json:"activeEndTime"`
-	CreatedAt           time.Time          `json:"createdAt"`
-	Status              SchedulePlanStatus `json:"status"` // 状态不保存到数据库，由专门的函数来计算目前的排班计划的状态
-	Version             int32              `json:"-"`
+	ID                   int64              `json:"id"`
+	Name                 string             `json:"name"`
+	Description          string             `json:"description"`
+	SubmissionStartTime  time.Time          `json:"submissionStartTime"`
+	SubmissionEndTime    time.Time          `json:"submissionEndTime"`
+	ActiveStartTime      time.Time          `json:"activeStartTime"`
+	ActiveEndTime        time.Time          `json:"activeEndTime"`
+	CreatedAt            time.Time          `json:"createdAt"`
+	ScheduleTemplateName string             `json:"scheduleTemplateName"` // 应用层应该返回模板名，而不是模板 id
+	Status               SchedulePlanStatus `json:"status"`               // 状态不保存到数据库，由专门的函数来计算目前的排班计划的状态
+	Version              int32              `json:"-"`
 }

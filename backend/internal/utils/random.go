@@ -199,10 +199,11 @@ func GenerateRandomEndedSchedulePlan(plan *domain.SchedulePlan) {
 }
 
 // 随机生成一个排班计划
-func GenerateRandomSchedulePlan() *domain.SchedulePlan {
+func GenerateRandomSchedulePlan(templateName string) *domain.SchedulePlan {
 	plan := domain.SchedulePlan{
-		Name:        "排班计划" + GenerateRandomID(3, 3),
-		Description: "排班计划描述" + GenerateRandomID(20, 10),
+		Name:                 "排班计划" + GenerateRandomID(3, 3),
+		Description:          "排班计划描述" + GenerateRandomID(20, 10),
+		ScheduleTemplateName: templateName,
 	}
 
 	// 随机生成一个状态，根据不同状态生成不同类型的排班计划
