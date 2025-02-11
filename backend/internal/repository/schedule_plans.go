@@ -82,3 +82,43 @@ func (r *Repository) GetAllSchedulePlans() ([]*domain.SchedulePlan, error) {
 
 	return plans, nil
 }
+
+func (r *Repository) GetSchedulePlanByID(id int64) (*domain.SchedulePlan, error) {
+	query := `
+		SELECT 
+			name, 
+			description, 
+			submission_start_time, 
+			submission_end_time, 
+			active_start_time, 
+			active_end_time, 
+			created_at, 
+			version
+		FROM schedule_plans
+		WHERE id = $1
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(r.cfg.Database.QueryTimeout)*time.Second)
+	defer cancel()
+
+	plan := &domain.SchedulePlan{
+		ID: id,
+	}
+
+	dst := []any{
+		&plan.Name,
+		&plan.Description,
+		&plan.SubmissionStartTime,
+		&plan.SubmissionEndTime,
+		&plan.ActiveStartTime,
+		&plan.ActiveEndTime,
+		&plan.CreatedAt,
+		&plan.Version,
+	}
+
+	if err := r.dbpool.QueryRowContext(ctx, query, id).Scan(dst...); err != nil {
+		return nil, err
+	}
+
+	return plan, nil
+}

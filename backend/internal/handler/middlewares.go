@@ -207,3 +207,28 @@ func (h *Handler) scheduleTemplate(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
+
+func (h *Handler) schedulePlan(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		planIDParam := chi.URLParam(r, "id")
+		planID, err := strconv.ParseInt(planIDParam, 10, 64)
+		if err != nil {
+			h.errorResponse(w, r, "排班计划ID无效")
+			return
+		}
+
+		sp, err := h.repository.GetSchedulePlanByID(planID)
+		if err != nil {
+			switch {
+			case errors.Is(err, sql.ErrNoRows):
+				h.errorResponse(w, r, "排班计划不存在")
+			default:
+				h.internalServerError(w, r, err)
+			}
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), SchedulePlanCtx, sp)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}

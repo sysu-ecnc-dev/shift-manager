@@ -9,4 +9,5 @@ var (
 	UserInfoCtx             ContextKey = "userInfo"
 	ScheduleTemplateMetaCtx ContextKey = "scheduleTemplateMeta"
 	ScheduleTemplateCtx     ContextKey = "scheduleTemplate"
+	SchedulePlanCtx         ContextKey = "schedulePlan"
 )
