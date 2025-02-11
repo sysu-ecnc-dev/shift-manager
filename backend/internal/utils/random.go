@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"math/rand"
+	"time"
 
 	"github.com/mozillazg/go-pinyin"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/domain"
@@ -150,4 +151,74 @@ func GenerateRandomScheduleTemplate() *domain.ScheduleTemplate {
 	}
 
 	return &st
+}
+
+// 生成还没有开放提交的排班计划
+func GenerateRandomNotStartedSchedulePlan(plan *domain.SchedulePlan) {
+	plan.SubmissionStartTime = time.Now().Add(time.Hour * 24)
+	plan.SubmissionEndTime = plan.SubmissionStartTime.Add(time.Hour * 24 * 7)
+	plan.ActiveStartTime = plan.SubmissionEndTime.Add(time.Hour * 24 * 3)
+	plan.ActiveEndTime = plan.ActiveStartTime.Add(time.Hour * 24 * 30 * 5)
+	plan.Status = CalculateSchedulePlanStatus(plan)
+}
+
+// 生成已经开放提交的排班计划
+func GenerateRandomSubmissionAvailableSchedulePlan(plan *domain.SchedulePlan) {
+	plan.SubmissionStartTime = time.Now().Add(-time.Hour * 24)
+	plan.SubmissionEndTime = plan.SubmissionStartTime.Add(time.Hour * 24 * 7)
+	plan.ActiveStartTime = plan.SubmissionEndTime.Add(time.Hour * 24 * 3)
+	plan.ActiveEndTime = plan.ActiveStartTime.Add(time.Hour * 24 * 30 * 5)
+	plan.Status = CalculateSchedulePlanStatus(plan)
+}
+
+// 生成正在排班的排班计划
+func GenerateRandomSchedulingSchedulePlan(plan *domain.SchedulePlan) {
+	plan.SubmissionStartTime = time.Now().Add(-time.Hour * 24 * 8)
+	plan.SubmissionEndTime = plan.SubmissionStartTime.Add(time.Hour * 24 * 7)
+	plan.ActiveStartTime = plan.SubmissionEndTime.Add(time.Hour * 24 * 3)
+	plan.ActiveEndTime = plan.ActiveStartTime.Add(time.Hour * 24 * 30 * 5)
+	plan.Status = CalculateSchedulePlanStatus(plan)
+}
+
+// 生成正在启用的排班计划
+func GenerateRandomActiveSchedulePlan(plan *domain.SchedulePlan) {
+	plan.SubmissionStartTime = time.Now().Add(-time.Hour * 24 * 30)
+	plan.SubmissionEndTime = plan.SubmissionStartTime.Add(time.Hour * 24 * 7)
+	plan.ActiveStartTime = plan.SubmissionEndTime.Add(time.Hour * 24 * 3)
+	plan.ActiveEndTime = plan.ActiveStartTime.Add(time.Hour * 24 * 30 * 5)
+	plan.Status = CalculateSchedulePlanStatus(plan)
+}
+
+// 生成已经结束的排班计划
+func GenerateRandomEndedSchedulePlan(plan *domain.SchedulePlan) {
+	plan.SubmissionStartTime = time.Now().Add(-time.Hour * 24 * 30 * 7)
+	plan.SubmissionEndTime = plan.SubmissionStartTime.Add(time.Hour * 24 * 7)
+	plan.ActiveStartTime = plan.SubmissionEndTime.Add(time.Hour * 24 * 3)
+	plan.ActiveEndTime = plan.ActiveStartTime.Add(time.Hour * 24 * 30 * 5)
+	plan.Status = CalculateSchedulePlanStatus(plan)
+}
+
+// 随机生成一个排班计划
+func GenerateRandomSchedulePlan() *domain.SchedulePlan {
+	plan := domain.SchedulePlan{
+		Name:        "排班计划" + GenerateRandomID(3, 3),
+		Description: "排班计划描述" + GenerateRandomID(20, 10),
+	}
+
+	// 随机生成一个状态，根据不同状态生成不同类型的排班计划
+	randomStatus := rand.Intn(5)
+	switch randomStatus {
+	case 0:
+		GenerateRandomNotStartedSchedulePlan(&plan)
+	case 1:
+		GenerateRandomSubmissionAvailableSchedulePlan(&plan)
+	case 2:
+		GenerateRandomSchedulingSchedulePlan(&plan)
+	case 3:
+		GenerateRandomActiveSchedulePlan(&plan)
+	case 4:
+		GenerateRandomEndedSchedulePlan(&plan)
+	}
+
+	return &plan
 }

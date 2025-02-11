@@ -21,3 +21,7 @@ seed-users n:
 # 插入随机班表模板
 seed-schedule-templates n:
     go run cmd/seed/main.go -op 2 -n {{n}}
+
+# 插入随机排班计划
+seed-schedule-plans n:
+    go run cmd/seed/main.go -op 3 -n {{n}}
