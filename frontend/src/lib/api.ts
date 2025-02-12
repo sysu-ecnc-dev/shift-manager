@@ -103,3 +103,13 @@ export const deleteScheduleTemplate = (id: number) =>
 
 export const getSchedulePlans = () =>
   api.get<UnifiedResponse<SchedulePlan[]>>("/schedule-plans");
+
+export const createSchedulePlan = (data: {
+  name: string;
+  description: string;
+  submissionStartDate: string;
+  submissionEndDate: string;
+  activeStartDate: string;
+  activeEndDate: string;
+  templateName: string;
+}) => api.post<UnifiedResponse<SchedulePlan>>("/schedule-plans", data);
