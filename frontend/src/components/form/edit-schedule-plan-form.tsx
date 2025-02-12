@@ -1,24 +1,17 @@
-import { z } from "zod";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { addDays, addMonths, endOfDay, formatISO, startOfDay } from "date-fns";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { SchedulePlan } from "@/lib/types";
+import { formatISO, parseISO } from "date-fns";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { createSchedulePlan, getAllScheduleTemplateMeta } from "@/lib/api";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { DateRangePicker } from "@/components/form/date-range-picker";
+import { updateSchedulePlan } from "@/lib/api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { SchedulePlan } from "@/lib/types";
 import { PendingButton } from "@/components/pending-button";
-import { DateRangePicker } from "./date-range-picker";
+import { Button } from "@/components/ui/button";
 
 const schema = z
   .object({
@@ -28,7 +21,6 @@ const schema = z
     submissionEndTime: z.date().optional(),
     activeStartTime: z.date().optional(),
     activeEndTime: z.date().optional(),
-    templateName: z.string().min(1, { message: "模板名称不能为空" }),
   })
   .refine((data) => data.submissionStartTime && data.submissionEndTime, {
     message: "开放提交的日期为空",
@@ -40,22 +32,23 @@ const schema = z
   });
 
 interface Props {
+  schedulePlan: SchedulePlan;
   onDialogOpenChange: (open: boolean) => void;
 }
 
-export default function AddSchedulePlanForm({ onDialogOpenChange }: Props) {
-  const now = new Date();
-
+export default function EditSchedulePlanForm({
+  schedulePlan,
+  onDialogOpenChange,
+}: Props) {
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: {
-      name: "",
-      description: "",
-      submissionStartTime: startOfDay(now),
-      submissionEndTime: endOfDay(addDays(now, 7)),
-      activeStartTime: startOfDay(addDays(now, 10)),
-      activeEndTime: endOfDay(addMonths(now, 5)),
-      templateName: "",
+      name: schedulePlan.name,
+      description: schedulePlan.description,
+      submissionStartTime: parseISO(schedulePlan.submissionStartTime),
+      submissionEndTime: parseISO(schedulePlan.submissionEndTime),
+      activeStartTime: parseISO(schedulePlan.activeStartTime),
+      activeEndTime: parseISO(schedulePlan.activeEndTime),
     },
   });
 
@@ -65,10 +58,9 @@ export default function AddSchedulePlanForm({ onDialogOpenChange }: Props) {
   const activeEndTime = form.watch("activeEndTime");
   const queryClient = useQueryClient();
 
-  // 提交班表计划
-  const submitSchedulePlanMutation = useMutation({
+  const updateSchedulePlanMutation = useMutation({
     mutationFn: (data: z.infer<typeof schema>) =>
-      createSchedulePlan({
+      updateSchedulePlan(schedulePlan.id, {
         ...data,
         submissionStartTime: formatISO(data.submissionStartTime!),
         submissionEndTime: formatISO(data.submissionEndTime!),
@@ -76,39 +68,20 @@ export default function AddSchedulePlanForm({ onDialogOpenChange }: Props) {
         activeEndTime: formatISO(data.activeEndTime!),
       }).then((res) => res.data),
     onSuccess: (res) => {
-      queryClient.setQueryData(["schedule-plans"], (old: SchedulePlan[]) => [
-        ...old,
-        res.data,
-      ]);
-      onDialogOpenChange(false);
+      queryClient.setQueryData(["schedule-plans"], (old: SchedulePlan[]) =>
+        old.map((plan) => (plan.id === schedulePlan.id ? res.data : plan))
+      );
       toast.success(res.message);
+      onDialogOpenChange(false);
     },
     onError: (error) => {
       toast.error(error.message);
     },
   });
 
-  const onSubmit = async (data: z.infer<typeof schema>) => {
-    submitSchedulePlanMutation.mutate(data);
+  const onSubmit = (data: z.infer<typeof schema>) => {
+    updateSchedulePlanMutation.mutate(data);
   };
-
-  // 获取班表模板列表
-  const {
-    data: scheduleTemplateList,
-    isPending,
-    isError,
-    error,
-  } = useQuery({
-    queryKey: ["schedule-templates"],
-    queryFn: () => getAllScheduleTemplateMeta().then((res) => res.data.data),
-  });
-
-  if (isPending) return null;
-
-  if (isError) {
-    toast.error(error.message);
-    return null;
-  }
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
@@ -119,7 +92,6 @@ export default function AddSchedulePlanForm({ onDialogOpenChange }: Props) {
           {...form.register("name")}
           placeholder="请输入排班计划名称"
           autoComplete="off"
-          disabled={submitSchedulePlanMutation.isPending}
         />
         {form.formState.errors.name && (
           <p className="text-destructive text-sm">
@@ -135,7 +107,6 @@ export default function AddSchedulePlanForm({ onDialogOpenChange }: Props) {
           className="resize-none"
           placeholder="请输入排班计划描述（可选）"
           autoComplete="off"
-          disabled={submitSchedulePlanMutation.isPending}
         />
       </div>
       {/* submissionDate */}
@@ -148,7 +119,6 @@ export default function AddSchedulePlanForm({ onDialogOpenChange }: Props) {
           form.setValue("submissionEndTime", end);
         }}
         error={form.formState.errors.submissionStartTime?.message}
-        disabled={submitSchedulePlanMutation.isPending}
       />
       {/* activeDate */}
       <DateRangePicker
@@ -160,38 +130,13 @@ export default function AddSchedulePlanForm({ onDialogOpenChange }: Props) {
           form.setValue("activeEndTime", end);
         }}
         error={form.formState.errors.activeStartTime?.message}
-        disabled={submitSchedulePlanMutation.isPending}
       />
-      {/* templateName */}
-      <div className="grid gap-2">
-        <Label>使用的班表模板</Label>
-        <Select
-          onValueChange={(value) => form.setValue("templateName", value)}
-          disabled={submitSchedulePlanMutation.isPending}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="请选择班表模板" />
-          </SelectTrigger>
-          <SelectContent>
-            {scheduleTemplateList.map((template) => (
-              <SelectItem key={template.id} value={template.name}>
-                {template.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {form.formState.errors.templateName && (
-          <p className="text-destructive text-sm">
-            {form.formState.errors.templateName.message}
-          </p>
-        )}
-      </div>
       {/* button */}
       <div className="flex justify-end">
-        {submitSchedulePlanMutation.isPending ? (
+        {updateSchedulePlanMutation.isPending ? (
           <PendingButton />
         ) : (
-          <Button type="submit">提交</Button>
+          <Button type="submit">保存</Button>
         )}
       </div>
     </form>

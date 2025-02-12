@@ -25,8 +25,15 @@ import {
   IconClock,
   IconCoffee,
 } from "@tabler/icons-react";
+import { useState } from "react";
+import EditSchedulePlanDialog from "@/components/dialog/edit-schedule-plan-dialog";
 
 export default function SchedulePlansTable() {
+  const [editSchedulePlanDialogOpen, setEditSchedulePlanDialogOpen] =
+    useState(false);
+  const [selectedSchedulePlan, setSelectedSchedulePlan] =
+    useState<SchedulePlan | null>(null);
+
   const columns: ColumnDef<SchedulePlan>[] = [
     {
       id: "select",
@@ -184,7 +191,7 @@ export default function SchedulePlansTable() {
     {
       id: "operation",
       enableHiding: false,
-      cell: () => {
+      cell: ({ row }) => {
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -195,7 +202,14 @@ export default function SchedulePlansTable() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>操作</DropdownMenuLabel>
               <DropdownMenuItem>查看提交情况</DropdownMenuItem>
-              <DropdownMenuItem>编辑排班计划</DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelectedSchedulePlan(row.original);
+                  setEditSchedulePlanDialogOpen(true);
+                }}
+              >
+                编辑排班计划
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-destructive">
                 删除排班计划
@@ -230,6 +244,13 @@ export default function SchedulePlansTable() {
           globalSearchPlaceholder="搜索排班计划..."
         />
       </div>
+      {selectedSchedulePlan && (
+        <EditSchedulePlanDialog
+          open={editSchedulePlanDialogOpen}
+          onOpenChange={setEditSchedulePlanDialogOpen}
+          schedulePlan={selectedSchedulePlan}
+        />
+      )}
     </>
   );
 }

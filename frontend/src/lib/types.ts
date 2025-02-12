@@ -31,6 +31,7 @@ export type ScheduleTemplate = {
 export type SchedulePlan = {
   id: number;
   name: string;
+  description: string;
   submissionStartTime: string;
   submissionEndTime: string;
   activeStartTime: string;

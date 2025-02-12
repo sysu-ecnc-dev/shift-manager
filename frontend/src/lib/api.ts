@@ -107,9 +107,21 @@ export const getSchedulePlans = () =>
 export const createSchedulePlan = (data: {
   name: string;
   description: string;
-  submissionStartDate: string;
-  submissionEndDate: string;
-  activeStartDate: string;
-  activeEndDate: string;
+  submissionStartTime: string;
+  submissionEndTime: string;
+  activeStartTime: string;
+  activeEndTime: string;
   templateName: string;
 }) => api.post<UnifiedResponse<SchedulePlan>>("/schedule-plans", data);
+
+export const updateSchedulePlan = (
+  id: number,
+  data: {
+    name?: string;
+    description?: string;
+    submissionStartTime?: string;
+    submissionEndTime?: string;
+    activeStartTime?: string;
+    activeEndTime?: string;
+  }
+) => api.patch<UnifiedResponse<SchedulePlan>>(`/schedule-plans/${id}`, data);
