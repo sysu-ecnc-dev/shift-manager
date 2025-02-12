@@ -105,13 +105,18 @@ func (h *Handler) RegisterRoutes() {
 		r.Route("/schedule-plans", func(r chi.Router) {
 			r.With(h.RequiredRole([]domain.Role{domain.RoleBlackCore})).Post("/", h.CreateSchedulePlan)
 			r.Get("/", h.GetAllSchedulePlans)
-			r.With(h.myInfo).With(h.preventSeparatedAssistant).Get("/latest-available", h.GetLatestSubmissionAvailablePlan)
 			r.Route("/{id}", func(r chi.Router) {
 				r.Use(h.schedulePlan)
 				r.Get("/", h.GetSchedulePlanByID)
 				r.With(h.RequiredRole([]domain.Role{domain.RoleBlackCore})).Patch("/", h.UpdateSchedulePlan)
 				r.With(h.RequiredRole([]domain.Role{domain.RoleBlackCore})).Delete("/", h.DeleteSchedulePlan)
 			})
+		})
+
+		r.Route("/latest-available-schedule-plan", func(r chi.Router) {
+			r.Use(h.myInfo)
+			r.Use(h.preventSeparatedAssistant)
+			r.Get("/", h.GetLatestSubmissionAvailablePlan)
 		})
 	})
 }

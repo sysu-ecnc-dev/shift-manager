@@ -186,5 +186,22 @@ func (h *Handler) GetLatestSubmissionAvailablePlan(w http.ResponseWriter, r *htt
 	}
 
 	plan.Status = utils.CalculateSchedulePlanStatus(plan)
-	h.successResponse(w, r, "获取最新开放提交的排班计划成功", plan)
+
+	// 此时还应该将对应的排班模板返回
+	templateID, err := h.repository.GetScheduleTemplateID(plan.ScheduleTemplateName)
+	if err != nil {
+		h.internalServerError(w, r, err)
+		return
+	}
+
+	template, err := h.repository.GetScheduleTemplate(templateID)
+	if err != nil {
+		h.internalServerError(w, r, err)
+		return
+	}
+
+	h.successResponse(w, r, "获取最新开放提交的排班计划成功", map[string]interface{}{
+		"plan":     plan,
+		"template": template,
+	})
 }

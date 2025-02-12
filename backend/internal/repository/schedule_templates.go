@@ -171,3 +171,14 @@ func (r *Repository) GetScheduleTemplate(id int64) (*domain.ScheduleTemplate, er
 
 	return stm, nil
 }
+
+func (r *Repository) GetScheduleTemplateID(name string) (int64, error) {
+	query := `SELECT id FROM schedule_template_meta WHERE name = $1`
+
+	var id int64
+	if err := r.dbpool.QueryRowContext(context.Background(), query, name).Scan(&id); err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}
