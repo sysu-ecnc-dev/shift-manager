@@ -128,3 +128,11 @@ export const updateSchedulePlan = (
 
 export const deleteSchedulePlan = (id: number) =>
   api.delete<UnifiedResponse<null>>(`/schedule-plans/${id}`);
+
+export const getLatestSubmissionAvailablePlan = () =>
+  api.get<
+    UnifiedResponse<{
+      plan: SchedulePlan;
+      template: ScheduleTemplate;
+    }>
+  >("/latest-available-schedule-plan");
