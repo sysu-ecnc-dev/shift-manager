@@ -18,6 +18,7 @@ import { Route as AuthLoginImport } from './routes/auth/login'
 import { Route as AuthForgetPasswordImport } from './routes/auth/forget-password'
 import { Route as DashboardSettingsImport } from './routes/_dashboard/settings'
 import { Route as DashboardManagementImport } from './routes/_dashboard/management'
+import { Route as DashboardEngageSchedulePlanImport } from './routes/_dashboard/engage-schedule-plan'
 import { Route as DashboardSettingsIndexImport } from './routes/_dashboard/settings/index'
 import { Route as DashboardSettingsUpdatePasswordImport } from './routes/_dashboard/settings/update-password'
 import { Route as DashboardManagementUsersImport } from './routes/_dashboard/management/users'
@@ -66,6 +67,13 @@ const DashboardManagementRoute = DashboardManagementImport.update({
   path: '/management',
   getParentRoute: () => DashboardRoute,
 } as any)
+
+const DashboardEngageSchedulePlanRoute =
+  DashboardEngageSchedulePlanImport.update({
+    id: '/engage-schedule-plan',
+    path: '/engage-schedule-plan',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 
 const DashboardSettingsIndexRoute = DashboardSettingsIndexImport.update({
   id: '/',
@@ -117,6 +125,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth'
       preLoaderRoute: typeof AuthImport
       parentRoute: typeof rootRoute
+    }
+    '/_dashboard/engage-schedule-plan': {
+      id: '/_dashboard/engage-schedule-plan'
+      path: '/engage-schedule-plan'
+      fullPath: '/engage-schedule-plan'
+      preLoaderRoute: typeof DashboardEngageSchedulePlanImport
+      parentRoute: typeof DashboardImport
     }
     '/_dashboard/management': {
       id: '/_dashboard/management'
@@ -223,12 +238,14 @@ const DashboardSettingsRouteWithChildren =
   DashboardSettingsRoute._addFileChildren(DashboardSettingsRouteChildren)
 
 interface DashboardRouteChildren {
+  DashboardEngageSchedulePlanRoute: typeof DashboardEngageSchedulePlanRoute
   DashboardManagementRoute: typeof DashboardManagementRouteWithChildren
   DashboardSettingsRoute: typeof DashboardSettingsRouteWithChildren
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardEngageSchedulePlanRoute: DashboardEngageSchedulePlanRoute,
   DashboardManagementRoute: DashboardManagementRouteWithChildren,
   DashboardSettingsRoute: DashboardSettingsRouteWithChildren,
   DashboardIndexRoute: DashboardIndexRoute,
@@ -253,6 +270,7 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 export interface FileRoutesByFullPath {
   '': typeof DashboardRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
+  '/engage-schedule-plan': typeof DashboardEngageSchedulePlanRoute
   '/management': typeof DashboardManagementRouteWithChildren
   '/settings': typeof DashboardSettingsRouteWithChildren
   '/auth/forget-password': typeof AuthForgetPasswordRoute
@@ -267,6 +285,7 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
+  '/engage-schedule-plan': typeof DashboardEngageSchedulePlanRoute
   '/management': typeof DashboardManagementRouteWithChildren
   '/auth/forget-password': typeof AuthForgetPasswordRoute
   '/auth/login': typeof AuthLoginRoute
@@ -282,6 +301,7 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/_dashboard': typeof DashboardRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
+  '/_dashboard/engage-schedule-plan': typeof DashboardEngageSchedulePlanRoute
   '/_dashboard/management': typeof DashboardManagementRouteWithChildren
   '/_dashboard/settings': typeof DashboardSettingsRouteWithChildren
   '/auth/forget-password': typeof AuthForgetPasswordRoute
@@ -299,6 +319,7 @@ export interface FileRouteTypes {
   fullPaths:
     | ''
     | '/auth'
+    | '/engage-schedule-plan'
     | '/management'
     | '/settings'
     | '/auth/forget-password'
@@ -312,6 +333,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
+    | '/engage-schedule-plan'
     | '/management'
     | '/auth/forget-password'
     | '/auth/login'
@@ -325,6 +347,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_dashboard'
     | '/auth'
+    | '/_dashboard/engage-schedule-plan'
     | '/_dashboard/management'
     | '/_dashboard/settings'
     | '/auth/forget-password'
@@ -365,6 +388,7 @@ export const routeTree = rootRoute
     "/_dashboard": {
       "filePath": "_dashboard.tsx",
       "children": [
+        "/_dashboard/engage-schedule-plan",
         "/_dashboard/management",
         "/_dashboard/settings",
         "/_dashboard/"
@@ -376,6 +400,10 @@ export const routeTree = rootRoute
         "/auth/forget-password",
         "/auth/login"
       ]
+    },
+    "/_dashboard/engage-schedule-plan": {
+      "filePath": "_dashboard/engage-schedule-plan.tsx",
+      "parent": "/_dashboard"
     },
     "/_dashboard/management": {
       "filePath": "_dashboard/management.tsx",

@@ -1,4 +1,4 @@
-import { House, LucideIcon } from "lucide-react";
+import { Hand, House, LucideIcon } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -17,6 +17,11 @@ const navItems: {
     label: "主页",
     icon: House,
     href: "/",
+  },
+  {
+    label: "参与排班",
+    icon: Hand,
+    href: "/engage-schedule-plan",
   },
 ];
 
