@@ -235,3 +235,15 @@ func (h *Handler) schedulePlan(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
+
+func (h *Handler) preventSeparatedAssistant(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		myInfo := r.Context().Value(MyInfoCtx).(*domain.User)
+		if !myInfo.IsActive {
+			h.errorResponse(w, r, "您已离职，无法参与排班")
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
