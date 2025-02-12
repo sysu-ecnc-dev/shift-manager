@@ -5,16 +5,7 @@ import { addDays, addMonths, endOfDay, formatISO, startOfDay } from "date-fns";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
-import { Calendar } from "@/components/ui/calendar";
 import { createSchedulePlan, getAllScheduleTemplateMeta } from "@/lib/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -26,8 +17,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SchedulePlan } from "@/lib/types";
-import { cn } from "@/lib/utils";
 import { PendingButton } from "@/components/pending-button";
+import { DateRangePicker } from "./date-range-picker";
 
 const schema = z
   .object({
@@ -148,129 +139,29 @@ export default function AddSchedulePlanForm({ onDialogOpenChange }: Props) {
         />
       </div>
       {/* submissionDate */}
-      <div className="grid gap-2">
-        <Label>开放提交日期</Label>
-        <Popover modal={true}>
-          <PopoverTrigger
-            asChild
-            disabled={submitSchedulePlanMutation.isPending}
-          >
-            <Button
-              variant="outline"
-              className={cn(
-                "justify-start",
-                !submissionStartTime && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon />
-              {submissionStartTime ? (
-                submissionEndTime ? (
-                  <>
-                    {format(submissionStartTime, "yyyy-MM-dd HH:mm:ss EEEE", {
-                      locale: zhCN,
-                    })}{" "}
-                    ~{" "}
-                    {format(submissionEndTime, "yyyy-MM-dd HH:mm:ss EEEE", {
-                      locale: zhCN,
-                    })}
-                  </>
-                ) : (
-                  format(submissionStartTime, "yyyy-MM-dd HH:mm:ss EEEE", {
-                    locale: zhCN,
-                  })
-                )
-              ) : (
-                <span>请选择开放提交日期</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="center">
-            <Calendar
-              mode="range"
-              selected={{ from: submissionStartTime, to: submissionEndTime }}
-              onSelect={(date) => {
-                form.setValue("submissionStartTime", date?.from);
-                form.setValue(
-                  "submissionEndTime",
-                  date?.to
-                    ? endOfDay(date.to)
-                    : date?.from
-                      ? endOfDay(date.from)
-                      : undefined
-                );
-              }}
-              numberOfMonths={2}
-            />
-          </PopoverContent>
-        </Popover>
-        {form.formState.errors.submissionStartTime && (
-          <p className="text-destructive text-sm">
-            {form.formState.errors.submissionStartTime.message}
-          </p>
-        )}
-      </div>
+      <DateRangePicker
+        label="开放提交日期"
+        startDate={submissionStartTime}
+        endDate={submissionEndTime}
+        onRangeChange={({ start, end }) => {
+          form.setValue("submissionStartTime", start);
+          form.setValue("submissionEndTime", end);
+        }}
+        error={form.formState.errors.submissionStartTime?.message}
+        disabled={submitSchedulePlanMutation.isPending}
+      />
       {/* activeDate */}
-      <div className="grid gap-2">
-        <Label>生效日期</Label>
-        <Popover modal={true}>
-          <PopoverTrigger
-            asChild
-            disabled={submitSchedulePlanMutation.isPending}
-          >
-            <Button
-              variant="outline"
-              className={cn(
-                "justify-start",
-                !activeStartTime && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon />
-              {activeStartTime ? (
-                activeEndTime ? (
-                  <>
-                    {format(activeStartTime, "yyyy-MM-dd HH:mm:ss EEEE", {
-                      locale: zhCN,
-                    })}{" "}
-                    ~{" "}
-                    {format(activeEndTime, "yyyy-MM-dd HH:mm:ss EEEE", {
-                      locale: zhCN,
-                    })}
-                  </>
-                ) : (
-                  format(activeStartTime, "yyyy-MM-dd HH:mm:ss EEEE", {
-                    locale: zhCN,
-                  })
-                )
-              ) : (
-                <span>请选择生效日期</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="center">
-            <Calendar
-              mode="range"
-              selected={{ from: activeStartTime, to: activeEndTime }}
-              onSelect={(date) => {
-                form.setValue("activeStartTime", date?.from);
-                form.setValue(
-                  "activeEndTime",
-                  date?.to
-                    ? endOfDay(date.to)
-                    : date?.from
-                      ? endOfDay(date.from)
-                      : undefined
-                );
-              }}
-              numberOfMonths={2}
-            />
-          </PopoverContent>
-        </Popover>
-        {form.formState.errors.activeStartTime && (
-          <p className="text-destructive text-sm">
-            {form.formState.errors.activeStartTime.message}
-          </p>
-        )}
-      </div>
+      <DateRangePicker
+        label="生效日期"
+        startDate={activeStartTime}
+        endDate={activeEndTime}
+        onRangeChange={({ start, end }) => {
+          form.setValue("activeStartTime", start);
+          form.setValue("activeEndTime", end);
+        }}
+        error={form.formState.errors.activeStartTime?.message}
+        disabled={submitSchedulePlanMutation.isPending}
+      />
       {/* templateName */}
       <div className="grid gap-2">
         <Label>使用的班表模板</Label>
