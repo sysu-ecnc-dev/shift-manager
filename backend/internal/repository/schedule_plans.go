@@ -187,3 +187,48 @@ func (r *Repository) DeleteSchedulePlan(id int64) error {
 
 	return nil
 }
+
+func (r *Repository) GetLatestSubmissionAvailablePlan() (*domain.SchedulePlan, error) {
+	query := `
+		SELECT 
+			id,
+			name, 
+			description, 
+			submission_start_time, 
+			submission_end_time, 
+			active_start_time, 
+			active_end_time,
+			(SELECT name FROM schedule_template_meta WHERE id = schedule_template_id) AS schedule_template_name,
+			created_at, 
+			version
+		FROM schedule_plans
+		WHERE 
+			submission_start_time <= CURRENT_TIMESTAMP AND
+			submission_end_time > CURRENT_TIMESTAMP
+		ORDER BY submission_start_time DESC
+		LIMIT 1
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(r.cfg.Database.QueryTimeout)*time.Second)
+	defer cancel()
+
+	plan := &domain.SchedulePlan{}
+	dst := []any{
+		&plan.ID,
+		&plan.Name,
+		&plan.Description,
+		&plan.SubmissionStartTime,
+		&plan.SubmissionEndTime,
+		&plan.ActiveStartTime,
+		&plan.ActiveEndTime,
+		&plan.ScheduleTemplateName,
+		&plan.CreatedAt,
+		&plan.Version,
+	}
+
+	if err := r.dbpool.QueryRowContext(ctx, query).Scan(dst...); err != nil {
+		return nil, err
+	}
+
+	return plan, nil
+}
