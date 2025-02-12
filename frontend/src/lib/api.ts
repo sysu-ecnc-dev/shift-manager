@@ -125,3 +125,6 @@ export const updateSchedulePlan = (
     activeEndTime?: string;
   }
 ) => api.patch<UnifiedResponse<SchedulePlan>>(`/schedule-plans/${id}`, data);
+
+export const deleteSchedulePlan = (id: number) =>
+  api.delete<UnifiedResponse<null>>(`/schedule-plans/${id}`);

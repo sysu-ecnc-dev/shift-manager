@@ -27,12 +27,15 @@ import {
 } from "@tabler/icons-react";
 import { useState } from "react";
 import EditSchedulePlanDialog from "@/components/dialog/edit-schedule-plan-dialog";
+import DeleteSchedulePlanDialog from "@/components/dialog/delete-schedule-plan-dialog";
 
 export default function SchedulePlansTable() {
   const [editSchedulePlanDialogOpen, setEditSchedulePlanDialogOpen] =
     useState(false);
   const [selectedSchedulePlan, setSelectedSchedulePlan] =
     useState<SchedulePlan | null>(null);
+  const [deleteSchedulePlanDialogOpen, setDeleteSchedulePlanDialogOpen] =
+    useState(false);
 
   const columns: ColumnDef<SchedulePlan>[] = [
     {
@@ -211,7 +214,13 @@ export default function SchedulePlansTable() {
                 编辑排班计划
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive">
+              <DropdownMenuItem
+                className="text-destructive"
+                onClick={() => {
+                  setSelectedSchedulePlan(row.original);
+                  setDeleteSchedulePlanDialogOpen(true);
+                }}
+              >
                 删除排班计划
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -248,6 +257,13 @@ export default function SchedulePlansTable() {
         <EditSchedulePlanDialog
           open={editSchedulePlanDialogOpen}
           onOpenChange={setEditSchedulePlanDialogOpen}
+          schedulePlan={selectedSchedulePlan}
+        />
+      )}
+      {selectedSchedulePlan && (
+        <DeleteSchedulePlanDialog
+          open={deleteSchedulePlanDialogOpen}
+          onOpenChange={setDeleteSchedulePlanDialogOpen}
           schedulePlan={selectedSchedulePlan}
         />
       )}
