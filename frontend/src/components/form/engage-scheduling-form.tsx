@@ -13,8 +13,8 @@ import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DayOfWeek } from "@/lib/const";
-import { Switch } from "../ui/switch";
-import { Button } from "../ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 
 export default function EngageSchedulingForm() {
   const { data, isPending, isError, error } = useQuery({
@@ -104,7 +104,9 @@ export default function EngageSchedulingForm() {
                     ))}
                 </div>
               ) : (
-                <div>当天没有排班</div>
+                <div className="rounded-md border border-border py-4 px-4 text-center text-sm text-muted-foreground border-dashed">
+                  当天没有排班
+                </div>
               )}
             </TabsContent>
           ))}
