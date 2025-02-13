@@ -8,13 +8,6 @@ export type User = {
   createdAt: string;
 };
 
-export type ScheduleTemplateMeta = {
-  id: number;
-  name: string;
-  description: string;
-  createdAt: string;
-};
-
 export type ScheduleTemplateShift = {
   id: number;
   startTime: string;
@@ -24,7 +17,10 @@ export type ScheduleTemplateShift = {
 };
 
 export type ScheduleTemplate = {
-  meta: ScheduleTemplateMeta;
+  id: number;
+  name: string;
+  description: string;
+  createdAt: string;
   shifts: ScheduleTemplateShift[];
 };
 

@@ -5,41 +5,31 @@ import {
   DialogDescription,
   DialogHeader,
 } from "@/components/ui/dialog";
-import { ScheduleTemplateMeta } from "@/lib/types";
+import { ScheduleTemplate } from "@/lib/types";
 import { DialogTitle } from "@radix-ui/react-dialog";
-import { useQueryClient } from "@tanstack/react-query";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  scheduleTemplateId: number;
+  scheduleTemplate: ScheduleTemplate;
 }
 
 export default function UpdateScheduleTemplateDialog({
   open,
   onOpenChange,
-  scheduleTemplateId,
+  scheduleTemplate,
 }: Props) {
-  const queryClient = useQueryClient();
-  const scheduleTemplateMeta = (
-    queryClient.getQueryData(["schedule-templates"]) as ScheduleTemplateMeta[]
-  ).find((template) => template.id === scheduleTemplateId);
-
-  if (!scheduleTemplateMeta) {
-    return null;
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>更新班表模板</DialogTitle>
           <DialogDescription>
-            在这里修改{scheduleTemplateMeta.name}的名称或描述
+            在这里修改{scheduleTemplate.name}的名称或描述
           </DialogDescription>
         </DialogHeader>
         <UpdateScheduleTemplateForm
-          originalScheduleTemplate={scheduleTemplateMeta}
+          originalScheduleTemplate={scheduleTemplate}
           onDialogOpenChange={onOpenChange}
         />
       </DialogContent>

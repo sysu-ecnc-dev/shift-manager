@@ -1,9 +1,8 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { ScheduleTemplateMeta } from "@/lib/types";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/table/data-table-column-header";
 import { toast } from "sonner";
-import { getAllScheduleTemplateMeta } from "@/lib/api";
+import { getAllScheduleTemplates } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import DataTable from "@/components/table/data-table";
 import { format } from "date-fns";
@@ -22,15 +21,15 @@ import { useState } from "react";
 import ShowScheduleTemplateDetailDialog from "@/components/dialog/show-schedule-template-detail-dialog";
 import UpdateScheduleTemplateDialog from "@/components/dialog/update-schedule-template-dialog";
 import DeleteScheduleTemplateDialog from "@/components/dialog/delete-schedule-template-dialog";
+import { ScheduleTemplate } from "@/lib/types";
 
 export default function ScheduleTemplatesTable() {
   const [
     openShowScheduleTemplateDetailDialog,
     setOpenShowScheduleTemplateDetailDialog,
   ] = useState(false);
-  const [scheduleTemplateId, setScheduleTemplateId] = useState<number | null>(
-    null
-  );
+  const [scheduleTemplate, setScheduleTemplate] =
+    useState<ScheduleTemplate | null>(null);
   const [
     openUpdateScheduleTemplateDialog,
     setOpenUpdateScheduleTemplateDialog,
@@ -41,7 +40,7 @@ export default function ScheduleTemplatesTable() {
   ] = useState(false);
 
   // 表格列定义
-  const columns: ColumnDef<ScheduleTemplateMeta>[] = [
+  const columns: ColumnDef<ScheduleTemplate>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -125,7 +124,7 @@ export default function ScheduleTemplatesTable() {
               <DropdownMenuLabel>操作</DropdownMenuLabel>
               <DropdownMenuItem
                 onClick={() => {
-                  setScheduleTemplateId(row.original.id);
+                  setScheduleTemplate(row.original);
                   setOpenShowScheduleTemplateDetailDialog(true);
                 }}
               >
@@ -133,7 +132,7 @@ export default function ScheduleTemplatesTable() {
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
-                  setScheduleTemplateId(row.original.id);
+                  setScheduleTemplate(row.original);
                   setOpenUpdateScheduleTemplateDialog(true);
                 }}
               >
@@ -143,7 +142,7 @@ export default function ScheduleTemplatesTable() {
               <DropdownMenuItem
                 className="text-destructive"
                 onClick={() => {
-                  setScheduleTemplateId(row.original.id);
+                  setScheduleTemplate(row.original);
                   setOpenDeleteScheduleTemplateDialog(true);
                 }}
               >
@@ -159,7 +158,7 @@ export default function ScheduleTemplatesTable() {
   // 获取班表模板列表
   const { data, isPending, isError, error } = useQuery({
     queryKey: ["schedule-templates"],
-    queryFn: () => getAllScheduleTemplateMeta().then((res) => res.data.data),
+    queryFn: () => getAllScheduleTemplates().then((res) => res.data.data),
   });
 
   if (isPending) return null;
@@ -178,25 +177,25 @@ export default function ScheduleTemplatesTable() {
           globalSearchPlaceholder="搜索班表模板..."
         />
       </div>
-      {scheduleTemplateId && (
+      {scheduleTemplate && (
         <ShowScheduleTemplateDetailDialog
           open={openShowScheduleTemplateDetailDialog}
           onOpenChange={setOpenShowScheduleTemplateDetailDialog}
-          scheduleTemplateId={scheduleTemplateId}
+          scheduleTemplate={scheduleTemplate}
         />
       )}
-      {scheduleTemplateId && (
+      {scheduleTemplate && (
         <UpdateScheduleTemplateDialog
           open={openUpdateScheduleTemplateDialog}
           onOpenChange={setOpenUpdateScheduleTemplateDialog}
-          scheduleTemplateId={scheduleTemplateId}
+          scheduleTemplate={scheduleTemplate}
         />
       )}
-      {scheduleTemplateId && (
+      {scheduleTemplate && (
         <DeleteScheduleTemplateDialog
           open={openDeleteScheduleTemplateDialog}
           onOpenChange={setOpenDeleteScheduleTemplateDialog}
-          scheduleTemplateId={scheduleTemplateId}
+          scheduleTemplate={scheduleTemplate}
         />
       )}
     </>

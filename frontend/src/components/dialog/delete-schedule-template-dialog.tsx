@@ -7,7 +7,7 @@ import {
   AlertDialogHeader,
 } from "@/components/ui/alert-dialog";
 import { deleteScheduleTemplate } from "@/lib/api";
-import { ScheduleTemplateMeta } from "@/lib/types";
+import { ScheduleTemplate } from "@/lib/types";
 import { AlertDialogTitle } from "@radix-ui/react-alert-dialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -17,24 +17,24 @@ import { PendingButton } from "@/components/pending-button";
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  scheduleTemplateId: number;
+  scheduleTemplate: ScheduleTemplate;
 }
 
 export default function DeleteScheduleTemplateDialog({
   open,
   onOpenChange,
-  scheduleTemplateId,
+  scheduleTemplate,
 }: Props) {
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
     mutationFn: () =>
-      deleteScheduleTemplate(scheduleTemplateId).then((res) => res.data),
+      deleteScheduleTemplate(scheduleTemplate.id).then((res) => res.data),
     onSuccess: (res) => {
       queryClient.setQueryData(
         ["schedule-templates"],
-        (old: ScheduleTemplateMeta[]) =>
-          old.filter((s) => s.id !== scheduleTemplateId)
+        (old: ScheduleTemplate[]) =>
+          old.filter((s) => s.id !== scheduleTemplate.id)
       );
       toast.success(res.message);
       onOpenChange(false);
@@ -44,21 +44,13 @@ export default function DeleteScheduleTemplateDialog({
     },
   });
 
-  const scheduleTemplateMeta = (
-    queryClient.getQueryData(["schedule-templates"]) as ScheduleTemplateMeta[]
-  ).find((template) => template.id === scheduleTemplateId);
-
-  if (!scheduleTemplateMeta) {
-    return null;
-  }
-
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>删除模板</AlertDialogTitle>
           <AlertDialogDescription>
-            你确定要删除{scheduleTemplateMeta.name}吗?
+            你确定要删除{scheduleTemplate.name}吗?
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

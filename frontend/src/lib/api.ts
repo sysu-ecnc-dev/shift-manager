@@ -3,7 +3,6 @@ import {
   AvailabilitySubmission,
   SchedulePlan,
   ScheduleTemplate,
-  ScheduleTemplateMeta,
   User,
 } from "@/lib/types";
 
@@ -71,8 +70,8 @@ export const updateUser = (
 export const deleteUser = (id: number) =>
   api.delete<UnifiedResponse<null>>(`/users/${id}`);
 
-export const getAllScheduleTemplateMeta = () =>
-  api.get<UnifiedResponse<ScheduleTemplateMeta[]>>("/schedule-template-meta");
+export const getAllScheduleTemplates = () =>
+  api.get<UnifiedResponse<ScheduleTemplate[]>>("/schedule-templates");
 
 export const createScheduleTemplate = (data: {
   meta: {
@@ -90,17 +89,17 @@ export const createScheduleTemplate = (data: {
 export const getScheduleTemplate = (id: number) =>
   api.get<UnifiedResponse<ScheduleTemplate>>(`/schedule-templates/${id}`);
 
-export const updateScheduleTemplateMeta = (
+export const updateScheduleTemplate = (
   id: number,
   data: { name: string; description: string }
 ) =>
-  api.patch<UnifiedResponse<ScheduleTemplateMeta>>(
-    `/schedule-template-meta/${id}`,
+  api.patch<UnifiedResponse<ScheduleTemplate>>(
+    `/schedule-templates/${id}`,
     data
   );
 
 export const deleteScheduleTemplate = (id: number) =>
-  api.delete<UnifiedResponse<null>>(`/schedule-template-meta/${id}`);
+  api.delete<UnifiedResponse<null>>(`/schedule-templates/${id}`);
 
 export const getSchedulePlans = () =>
   api.get<UnifiedResponse<SchedulePlan[]>>("/schedule-plans");

@@ -1,4 +1,4 @@
-import { ScheduleTemplateMeta } from "@/lib/types";
+import { ScheduleTemplate } from "@/lib/types";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,12 +14,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { updateScheduleTemplateMeta } from "@/lib/api";
+import { updateScheduleTemplate } from "@/lib/api";
 import { toast } from "sonner";
 import { PendingButton } from "@/components/pending-button";
 
 interface Props {
-  originalScheduleTemplate: ScheduleTemplateMeta;
+  originalScheduleTemplate: ScheduleTemplate;
   onDialogOpenChange: (open: boolean) => void;
 }
 
@@ -44,14 +44,14 @@ export default function UpdateScheduleTemplateForm({
 
   const updateMutation = useMutation({
     mutationFn: (data: z.infer<typeof schema>) => {
-      return updateScheduleTemplateMeta(originalScheduleTemplate.id, data).then(
+      return updateScheduleTemplate(originalScheduleTemplate.id, data).then(
         (res) => res.data
       );
     },
     onSuccess: (res) => {
       queryClient.setQueryData(
         ["schedule-templates"],
-        (old: ScheduleTemplateMeta[]) =>
+        (old: ScheduleTemplate[]) =>
           old.map((template) =>
             template.id === originalScheduleTemplate.id ? res.data : template
           )

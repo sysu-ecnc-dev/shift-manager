@@ -204,7 +204,7 @@ export default function SchedulePlansTable() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>操作</DropdownMenuLabel>
-              <DropdownMenuItem>查看提交情况</DropdownMenuItem>
+              <DropdownMenuItem>排班管理</DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
                   setSelectedSchedulePlan(row.original);

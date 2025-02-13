@@ -8,53 +8,34 @@ import {
   DialogHeader,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getScheduleTemplate } from "@/lib/api";
 import { DayOfWeek } from "@/lib/const";
+import { ScheduleTemplate } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
 import { User } from "lucide-react";
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  scheduleTemplateId: number;
+  scheduleTemplate: ScheduleTemplate;
 }
 
 export default function ShowScheduleTemplateDetailDialog({
   open,
   onOpenChange,
-  scheduleTemplateId,
+  scheduleTemplate,
 }: Props) {
-  const {
-    data: scheduleTemplate,
-    isPending,
-    isError,
-  } = useQuery({
-    queryKey: ["schedule-template", scheduleTemplateId],
-    queryFn: () =>
-      getScheduleTemplate(scheduleTemplateId).then((res) => res.data.data),
-  });
-
-  if (isPending) {
-    return null;
-  }
-
-  if (isError) {
-    return null;
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogHeader>{scheduleTemplate?.meta.name}</DialogHeader>
+          <DialogHeader>{scheduleTemplate.name}</DialogHeader>
           <DialogDescription
             className={cn(
-              scheduleTemplate?.meta.description.length <= 0 &&
+              scheduleTemplate.description.length <= 0 &&
                 "text-muted-foreground"
             )}
           >
-            {scheduleTemplate?.meta.description.length > 0
-              ? scheduleTemplate?.meta.description
+            {scheduleTemplate.description.length > 0
+              ? scheduleTemplate.description
               : "此模板无描述"}
           </DialogDescription>
         </DialogHeader>
