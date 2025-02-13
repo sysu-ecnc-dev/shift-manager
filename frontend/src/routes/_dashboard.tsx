@@ -12,9 +12,11 @@ function RouteComponent() {
     <RequireAuthGuard>
       <SidebarProvider>
         <AppSidebar />
-        <main className="w-full">
+        <main className="w-full flex flex-col pb-2">
           <Header />
-          <Outlet />
+          <div className="flex-1">
+            <Outlet />
+          </div>
         </main>
       </SidebarProvider>
     </RequireAuthGuard>
