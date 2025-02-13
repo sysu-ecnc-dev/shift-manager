@@ -1,5 +1,6 @@
 import axios from "axios";
 import {
+  AvailabilitySubmission,
   SchedulePlan,
   ScheduleTemplate,
   ScheduleTemplateMeta,
@@ -136,3 +137,14 @@ export const getLatestSubmissionAvailablePlan = () =>
       template: ScheduleTemplate;
     }>
   >("/latest-available-schedule-plan");
+
+export const submitAvailability = (data: {
+  availabilities: {
+    shiftId: number;
+    days: number[];
+  }[];
+}) =>
+  api.post<UnifiedResponse<AvailabilitySubmission>>(
+    "/latest-available-schedule-plan/submit-availability",
+    data
+  );

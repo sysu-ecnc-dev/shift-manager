@@ -40,3 +40,15 @@ export type SchedulePlan = {
   status: "未开始" | "开放提交" | "排班中" | "生效中" | "已结束";
   createdAt: string;
 };
+
+export type AvailabilitySubmission = {
+  id: number;
+  schedulePlanName: string;
+  username: string;
+  items: [
+    {
+      shiftId: number;
+      days: number[];
+    },
+  ];
+};

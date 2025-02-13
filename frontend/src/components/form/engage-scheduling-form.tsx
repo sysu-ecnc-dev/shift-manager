@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -5,48 +6,65 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getLatestSubmissionAvailablePlan } from "@/lib/api";
-import { useQuery } from "@tanstack/react-query";
+import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { submitAvailability } from "@/lib/api";
+import { DayOfWeek } from "@/lib/const";
+import { SchedulePlan, ScheduleTemplate } from "@/lib/types";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, isBefore, parseISO } from "date-fns";
 import { zhCN } from "date-fns/locale";
+import { useLayoutEffect, useState } from "react";
 import { toast } from "sonner";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DayOfWeek } from "@/lib/const";
-import { Switch } from "@/components/ui/switch";
-import { Button } from "@/components/ui/button";
+import { PendingButton } from "../pending-button";
 
 export default function EngageSchedulingForm() {
-  const { data, isPending, isError, error } = useQuery({
-    queryKey: ["latest-available-schedule-plan"],
-    queryFn: () =>
-      getLatestSubmissionAvailablePlan().then((res) => res.data.data),
+  const queryClient = useQueryClient();
+  const planWithTemplate = queryClient.getQueryData<{
+    plan: SchedulePlan;
+    template: ScheduleTemplate;
+  }>(["latest-available-schedule-plan"])!; // 这里可以保证 data 一定存在
+
+  const [availabilities, setAvailabilities] = useState<
+    {
+      shiftId: number;
+      days: number[];
+    }[]
+  >([]);
+
+  const submitMutation = useMutation({
+    mutationFn: () =>
+      submitAvailability({ availabilities }).then((res) => res.data),
+    onSuccess: (res) => {
+      queryClient.setQueryData(
+        ["latest-available-schedule-plan", "your-submission"],
+        res.data
+      );
+      toast.success(res.message);
+    },
+    onError: (err) => {
+      toast.error(err.message);
+    },
   });
 
-  if (isPending) {
-    return null;
-  }
-
-  if (isError) {
-    toast.error(error.message);
-    return null;
-  }
-
-  if (data === null) {
-    return (
-      <div className="flex-1 border border-border border-dashed flex items-center justify-center text-muted-foreground">
-        现在没有可以参与的排班计划
-      </div>
+  // 先初始化 availabilities
+  useLayoutEffect(() => {
+    setAvailabilities(
+      planWithTemplate.template.shifts.map((s) => ({
+        shiftId: s.id,
+        days: [],
+      }))
     );
-  }
+  }, [planWithTemplate]);
 
   return (
     <div className="w-max mx-auto">
       <Card>
         <CardHeader>
-          <CardTitle>{data.plan.name}</CardTitle>
+          <CardTitle>{planWithTemplate.plan.name}</CardTitle>
           <CardDescription>
-            {data.plan.description || "此排班计划没有描述"}
+            {planWithTemplate.plan.description || "此排班计划没有描述"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -55,7 +73,7 @@ export default function EngageSchedulingForm() {
               <span>开放提交时间: </span>
               <span className="underline underline-offset-4">
                 {format(
-                  data.plan.submissionStartTime,
+                  planWithTemplate.plan.submissionStartTime,
                   "yyyy-MM-dd EEEE HH:mm:ss",
                   {
                     locale: zhCN,
@@ -63,7 +81,7 @@ export default function EngageSchedulingForm() {
                 )}{" "}
                 到{" "}
                 {format(
-                  data.plan.submissionEndTime,
+                  planWithTemplate.plan.submissionEndTime,
                   "yyyy-MM-dd EEEE HH:mm:ss",
                   {
                     locale: zhCN,
@@ -74,13 +92,21 @@ export default function EngageSchedulingForm() {
             <div className="flex items-center gap-2">
               <span>排班启用时间: </span>
               <span className="underline underline-offset-4">
-                {format(data.plan.activeStartTime, "yyyy-MM-dd EEEE HH:mm:ss", {
-                  locale: zhCN,
-                })}{" "}
+                {format(
+                  planWithTemplate.plan.activeStartTime,
+                  "yyyy-MM-dd EEEE HH:mm:ss",
+                  {
+                    locale: zhCN,
+                  }
+                )}{" "}
                 到{" "}
-                {format(data.plan.activeEndTime, "yyyy-MM-dd EEEE HH:mm:ss", {
-                  locale: zhCN,
-                })}
+                {format(
+                  planWithTemplate.plan.activeEndTime,
+                  "yyyy-MM-dd EEEE HH:mm:ss",
+                  {
+                    locale: zhCN,
+                  }
+                )}
               </span>
             </div>
           </div>
@@ -95,11 +121,11 @@ export default function EngageSchedulingForm() {
             </TabsList>
             {DayOfWeek.map((day) => (
               <TabsContent key={day.key} value={day.key.toString()}>
-                {data.template.shifts.some((s) =>
+                {planWithTemplate.template.shifts.some((s) =>
                   s.applicableDays.includes(day.key)
                 ) ? (
                   <div className="grid gap-4">
-                    {data.template.shifts
+                    {planWithTemplate.template.shifts
                       .filter((s) => s.applicableDays.includes(day.key))
                       .sort((a, b) =>
                         isBefore(parseISO(a.startTime), parseISO(b.startTime))
@@ -113,7 +139,25 @@ export default function EngageSchedulingForm() {
                             {s.requiredAssistantNumber}
                             名助理）
                           </span>
-                          <Switch />
+                          <Switch
+                            disabled={submitMutation.isPending}
+                            checked={availabilities
+                              .find((a) => a.shiftId === s.id)
+                              ?.days.includes(day.key)}
+                            onCheckedChange={(checked) => {
+                              setAvailabilities((prev) => {
+                                const target = prev.find(
+                                  (a) => a.shiftId === s.id
+                                );
+                                if (target) {
+                                  target.days = checked
+                                    ? [...target.days, day.key]
+                                    : target.days.filter((d) => d !== day.key);
+                                }
+                                return [...prev];
+                              });
+                            }}
+                          />
                         </div>
                       ))}
                   </div>
@@ -126,7 +170,11 @@ export default function EngageSchedulingForm() {
             ))}
           </Tabs>
           <div className="flex justify-end mt-4">
-            <Button>提交</Button>
+            {submitMutation.isPending ? (
+              <PendingButton />
+            ) : (
+              <Button onClick={() => submitMutation.mutate()}>提交</Button>
+            )}
           </div>
         </CardContent>
       </Card>
