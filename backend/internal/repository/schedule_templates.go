@@ -307,7 +307,7 @@ func (r *Repository) UpdateScheduleTemplate(stm *domain.ScheduleTemplate) error 
 		UPDATE schedule_templates
 		SET 
 			name = $1, 
-			description = $2
+			description = $2,
 			version = version + 1
 		WHERE id = $3 AND version = $4
 		RETURNING version
