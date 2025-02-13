@@ -15,7 +15,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (h *Handler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetAllUserInfo(w http.ResponseWriter, r *http.Request) {
 	users, err := h.repository.GetAllUsers()
 	if err != nil {
 		h.internalServerError(w, r, err)

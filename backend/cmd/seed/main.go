@@ -105,7 +105,7 @@ func main() {
 			slog.Error("请输入合法的排班计划数量")
 		} else {
 			// 先获取所有模板的元数据
-			stms, err := repo.GetAllScheduleTemplatesMeta()
+			stms, err := repo.GetAllScheduleTemplates()
 			if err != nil {
 				slog.Error("无法获取所有模板的元数据", slog.String("error", err.Error()))
 				return
@@ -116,8 +116,8 @@ func main() {
 				// 随机选一个模板
 				stm := stms[rand.Intn(len(stms))]
 
-				plan := utils.GenerateRandomSchedulePlan(stm.Name)
-				if err := repo.InsertSchedulePlan(plan); err != nil {
+				plan := utils.GenerateRandomSchedulePlan(stm.ID)
+				if err := repo.CreateSchedulePlan(plan); err != nil {
 					slog.Error("无法插入排班计划", slog.String("error", err.Error()))
 					continue
 				}

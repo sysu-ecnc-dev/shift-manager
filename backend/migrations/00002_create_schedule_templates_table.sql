@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE IF NOT EXISTS schedule_template_meta(
+CREATE TABLE IF NOT EXISTS schedule_templates(
     id BIGSERIAL PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,
     description TEXT NOT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS schedule_template_meta(
 
 CREATE TABLE IF NOT EXISTS schedule_template_shifts(
     id BIGSERIAL PRIMARY KEY,
-    template_id BIGINT NOT NULL REFERENCES schedule_template_meta(id) ON DELETE CASCADE,
+    template_id BIGINT NOT NULL REFERENCES schedule_templates(id) ON DELETE CASCADE,
     start_time TIME NOT NULL,
     end_time TIME NOT NULL,
     required_assistant_number INT NOT NULL

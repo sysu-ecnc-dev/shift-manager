@@ -13,12 +13,12 @@ import (
 func (h *Handler) CreateSchedulePlan(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Name                string    `json:"name" validate:"required"`
-		Description         *string   `json:"description"`
+		Description         string    `json:"description"`
 		SubmissionStartTime time.Time `json:"submissionStartTime" validate:"required"`
 		SubmissionEndTime   time.Time `json:"submissionEndTime" validate:"required"`
 		ActiveStartTime     time.Time `json:"activeStartTime" validate:"required"`
 		ActiveEndTime       time.Time `json:"activeEndTime" validate:"required"`
-		TemplateName        string    `json:"templateName" validate:"required"`
+		TemplateID          int64     `json:"templateID" validate:"required"`
 	}
 
 	if err := h.readJSON(r, &req); err != nil {
@@ -31,17 +31,13 @@ func (h *Handler) CreateSchedulePlan(w http.ResponseWriter, r *http.Request) {
 	}
 
 	plan := &domain.SchedulePlan{
-		Name:                 req.Name,
-		Description:          "",
-		SubmissionStartTime:  req.SubmissionStartTime,
-		SubmissionEndTime:    req.SubmissionEndTime,
-		ActiveStartTime:      req.ActiveStartTime,
-		ActiveEndTime:        req.ActiveEndTime,
-		ScheduleTemplateName: req.TemplateName,
-	}
-
-	if req.Description != nil {
-		plan.Description = *req.Description
+		Name:                req.Name,
+		Description:         req.Description,
+		SubmissionStartTime: req.SubmissionStartTime,
+		SubmissionEndTime:   req.SubmissionEndTime,
+		ActiveStartTime:     req.ActiveStartTime,
+		ActiveEndTime:       req.ActiveEndTime,
+		ScheduleTemplateID:  req.TemplateID,
 	}
 
 	// 检查 plan 的时间是否合法
@@ -51,7 +47,7 @@ func (h *Handler) CreateSchedulePlan(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 插入数据到数据库中
-	if err := h.repository.InsertSchedulePlan(plan); err != nil {
+	if err := h.repository.CreateSchedulePlan(plan); err != nil {
 		var pgErr *pgconn.PgError
 		switch {
 		case errors.As(err, &pgErr):
@@ -69,7 +65,6 @@ func (h *Handler) CreateSchedulePlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	plan.Status = utils.CalculateSchedulePlanStatus(plan)
 	h.successResponse(w, r, "创建排班计划成功", plan)
 }
 
@@ -154,7 +149,6 @@ func (h *Handler) UpdateSchedulePlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	plan.Status = utils.CalculateSchedulePlanStatus(plan)
 	h.successResponse(w, r, "更新排班计划成功", plan)
 }
 
@@ -162,10 +156,6 @@ func (h *Handler) GetAllSchedulePlans(w http.ResponseWriter, r *http.Request) {
 	plans, err := h.repository.GetAllSchedulePlans()
 	if err != nil {
 		h.internalServerError(w, r, err)
-	}
-
-	for _, plan := range plans {
-		plan.Status = utils.CalculateSchedulePlanStatus(plan)
 	}
 
 	h.successResponse(w, r, "获取所有排班计划成功", plans)

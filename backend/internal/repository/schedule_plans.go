@@ -43,7 +43,6 @@ func (r *Repository) GetAllSchedulePlans() ([]*domain.SchedulePlan, error) {
 			&plan.SubmissionEndTime,
 			&plan.ActiveStartTime,
 			&plan.ActiveEndTime,
-			&plan.ScheduleTemplateName,
 			&plan.CreatedAt,
 			&plan.Version,
 		}
@@ -97,7 +96,7 @@ func (r *Repository) UpdateSchedulePlan(plan *domain.SchedulePlan) error {
 	return nil
 }
 
-func (r *Repository) InsertSchedulePlan(plan *domain.SchedulePlan) error {
+func (r *Repository) CreateSchedulePlan(plan *domain.SchedulePlan) error {
 	query := `
 		INSERT INTO schedule_plans (
 			name,
@@ -107,7 +106,7 @@ func (r *Repository) InsertSchedulePlan(plan *domain.SchedulePlan) error {
 			active_start_time,
 			active_end_time,
 			schedule_template_id
-		) VALUES ($1, $2, $3, $4, $5, $6, (SELECT id FROM schedule_template_meta WHERE name = $7))
+		) VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING id, created_at, version
 	`
 
@@ -121,7 +120,7 @@ func (r *Repository) InsertSchedulePlan(plan *domain.SchedulePlan) error {
 		plan.SubmissionEndTime,
 		plan.ActiveStartTime,
 		plan.ActiveEndTime,
-		plan.ScheduleTemplateName,
+		plan.ScheduleTemplateID,
 	}
 	dst := []any{&plan.ID, &plan.CreatedAt, &plan.Version}
 	if err := r.dbpool.QueryRowContext(ctx, query, params...).Scan(dst...); err != nil {
@@ -161,7 +160,6 @@ func (r *Repository) GetSchedulePlanByID(id int64) (*domain.SchedulePlan, error)
 		&plan.SubmissionEndTime,
 		&plan.ActiveStartTime,
 		&plan.ActiveEndTime,
-		&plan.ScheduleTemplateName,
 		&plan.CreatedAt,
 		&plan.Version,
 	}
@@ -221,7 +219,6 @@ func (r *Repository) GetLatestSubmissionAvailablePlan() (*domain.SchedulePlan, e
 		&plan.SubmissionEndTime,
 		&plan.ActiveStartTime,
 		&plan.ActiveEndTime,
-		&plan.ScheduleTemplateName,
 		&plan.CreatedAt,
 		&plan.Version,
 	}

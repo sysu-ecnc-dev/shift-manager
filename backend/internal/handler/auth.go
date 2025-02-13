@@ -108,7 +108,7 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	h.successResponse(w, r, "登出成功", nil)
 }
 
-func (h *Handler) RequestResetPassword(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) RequireResetPassword(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Username string `json:"username" validate:"required"`
 	}
@@ -186,7 +186,7 @@ func (h *Handler) RequestResetPassword(w http.ResponseWriter, r *http.Request) {
 	h.successResponse(w, r, "重置密码所需验证码已通过邮件发送", nil)
 }
 
-func (h *Handler) ResetPassword(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) ConfirmResetPassword(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Username string `json:"username" validate:"required"`
 		OTP      string `json:"otp" validate:"required"`

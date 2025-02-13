@@ -63,7 +63,7 @@ func (h *Handler) UpdateMyPassword(w http.ResponseWriter, r *http.Request) {
 	h.successResponse(w, r, "更新密码成功", nil)
 }
 
-func (h *Handler) RequireChangeEmail(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) RequireUpdateEmail(w http.ResponseWriter, r *http.Request) {
 	myInfo := r.Context().Value(MyInfoCtx).(*domain.User)
 
 	var req struct {
@@ -143,7 +143,7 @@ func (h *Handler) RequireChangeEmail(w http.ResponseWriter, r *http.Request) {
 	h.successResponse(w, r, "更改邮箱所需验证码已通过邮件发送", nil)
 }
 
-func (h *Handler) VerifyOTPAndChangeEmail(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) ConfirmUpdateEmail(w http.ResponseWriter, r *http.Request) {
 	myInfo := r.Context().Value(MyInfoCtx).(*domain.User)
 
 	var req struct {

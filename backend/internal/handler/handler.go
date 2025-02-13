@@ -49,56 +49,48 @@ func (h *Handler) RegisterRoutes() {
 	h.Mux.Use(h.logger)
 	h.Mux.Use(h.recoverer)
 
+	// 认证相关
 	h.Mux.Route("/auth", func(r chi.Router) {
 		r.Post("/login", h.Login)
 		r.Post("/logout", h.Logout)
 		r.Route("/reset-password", func(r chi.Router) {
-			r.Post("/require", h.RequestResetPassword)
-			r.Post("/confirm", h.ResetPassword)
+			r.Post("/require", h.RequireResetPassword)
+			r.Post("/confirm", h.ConfirmResetPassword)
 		})
 	})
 
+	// 以下 API 必须要在登录后才允许调用
 	h.Mux.Group(func(r chi.Router) {
 		r.Use(h.auth)
 		r.Route("/my-info", func(r chi.Router) {
 			r.Use(h.myInfo)
 			r.Get("/", h.GetMyInfo)
 			r.Patch("/password", h.UpdateMyPassword)
-			r.Route("/change-email", func(r chi.Router) {
-				r.Post("/require", h.RequireChangeEmail)
-				r.Post("/confirm", h.VerifyOTPAndChangeEmail)
+			r.Route("/update-email", func(r chi.Router) {
+				r.Post("/require", h.RequireUpdateEmail)
+				r.Post("/confirm", h.ConfirmUpdateEmail)
 			})
 		})
 
 		r.Route("/users", func(r chi.Router) {
-			r.Use(h.RequiredRole([]domain.Role{domain.RoleBlackCore}))
-			r.Get("/", h.GetAllUsers)
-			r.Post("/", h.CreateUser)
+			r.With(h.RequiredRole([]domain.Role{domain.RoleBlackCore})).Post("/", h.CreateUser)
+			r.Get("/", h.GetAllUserInfo)
 			r.Route("/{id}", func(r chi.Router) {
 				r.Use(h.userInfo)
 				r.Get("/", h.GetUserInfo)
-				r.With(h.preventOperateInitialAdmin).Patch("/", h.UpdateUser)
-				r.With(h.preventOperateInitialAdmin).Delete("/", h.DeleteUser)
-			})
-		})
-
-		r.Route("/schedule-template-meta", func(r chi.Router) {
-			r.Use(h.RequiredRole([]domain.Role{domain.RoleBlackCore}))
-			r.Get("/", h.GetAllScheduleTemplateMeta)
-			r.Route("/{id}", func(r chi.Router) {
-				r.Use(h.scheduleTemplateMeta)
-				r.Get("/", h.GetScheduleTemplateMeta)
-				r.Patch("/", h.UpdateScheduleTemplateMeta)
-				r.Delete("/", h.DeleteScheduleTemplateMeta)
+				r.With(h.preventOperateInitialAdmin).With(h.RequiredRole([]domain.Role{domain.RoleBlackCore})).Patch("/", h.UpdateUser)
+				r.With(h.preventOperateInitialAdmin).With(h.RequiredRole([]domain.Role{domain.RoleBlackCore})).Delete("/", h.DeleteUser)
 			})
 		})
 
 		r.Route("/schedule-templates", func(r chi.Router) {
-			r.Use(h.RequiredRole([]domain.Role{domain.RoleBlackCore}))
-			r.Post("/", h.CreateScheduleTemplate)
+			r.With(h.RequiredRole([]domain.Role{domain.RoleBlackCore})).Post("/", h.CreateScheduleTemplate)
+			r.Get("/", h.GetAllScheduleTemplates)
 			r.Route("/{id}", func(r chi.Router) {
 				r.Use(h.scheduleTemplate)
 				r.Get("/", h.GetScheduleTemplate)
+				r.With(h.RequiredRole([]domain.Role{domain.RoleBlackCore})).Patch("/", h.UpdateScheduleTemplate)
+				r.With(h.RequiredRole([]domain.Role{domain.RoleBlackCore})).Delete("/", h.DeleteScheduleTemplate)
 			})
 		})
 
@@ -111,15 +103,6 @@ func (h *Handler) RegisterRoutes() {
 				r.With(h.RequiredRole([]domain.Role{domain.RoleBlackCore})).Patch("/", h.UpdateSchedulePlan)
 				r.With(h.RequiredRole([]domain.Role{domain.RoleBlackCore})).Delete("/", h.DeleteSchedulePlan)
 			})
-		})
-
-		r.Route("/latest-available-schedule-plan", func(r chi.Router) {
-			r.Use(h.myInfo)
-			r.Use(h.preventSeparatedAssistant)
-			r.Use(h.latestSubmissionAvailablePlan)
-			r.Get("/", h.GetLatestSubmissionAvailablePlan)
-			r.Post("/submit-availability", h.SubmitAvailability)
-			r.Get("/submission", h.GetSubmission)
 		})
 	})
 }
