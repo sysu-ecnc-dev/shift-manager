@@ -119,6 +119,7 @@ func (h *Handler) RegisterRoutes() {
 			r.Use(h.latestSubmissionAvailablePlan)
 			r.Get("/", h.GetLatestSubmissionAvailablePlan)
 			r.Post("/submit-availability", h.SubmitAvailability)
+			r.Get("/submission", h.GetSubmission)
 		})
 	})
 }

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"log/slog"
 	"time"
 
@@ -81,4 +82,74 @@ func (r *Repository) DeleteAvailabilitySubmission(username string, planName stri
 	}
 
 	return nil
+}
+
+func (r *Repository) GetSubmissionByUsernameAndPlanName(username string, planName string) (*domain.AvailabilitySubmission, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(r.cfg.Database.QueryTimeout)*time.Second)
+	defer cancel()
+
+	res := &domain.AvailabilitySubmission{
+		Username:         username,
+		SchedulePlanName: planName,
+		Items:            make([]domain.AvailabilitySubmissionItem, 0),
+	}
+
+	query := `
+		SELECT id, created_at FROM availability_submissions
+		WHERE 
+			user_id = (SELECT id FROM users WHERE username = $1)
+			AND schedule_plan_id = (SELECT id FROM schedule_plans WHERE name = $2)
+	`
+
+	if err := r.dbpool.QueryRowContext(ctx, query, username, planName).Scan(&res.ID, &res.CreatedAt); err != nil {
+		return nil, err
+	}
+
+	query = `
+		SELECT shift_id, day
+		FROM availability_submission_items AS asi
+		LEFT JOIN 
+			availability_submission_item_days AS asid
+			ON asid.item_id = asi.id
+		WHERE 
+			asi.submission_id = $1
+	`
+
+	rows, err := r.dbpool.QueryContext(ctx, query, res.ID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var mapShiftIdToDays = make(map[int][]int)
+
+	for rows.Next() {
+		var shiftId int
+		var day sql.NullInt32
+
+		if err := rows.Scan(&shiftId, &day); err != nil {
+			return nil, err
+		}
+
+		if mapShiftIdToDays[shiftId] == nil {
+			mapShiftIdToDays[shiftId] = make([]int, 0)
+		}
+
+		if day.Valid {
+			mapShiftIdToDays[shiftId] = append(mapShiftIdToDays[shiftId], int(day.Int32))
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	for shiftId, days := range mapShiftIdToDays {
+		res.Items = append(res.Items, domain.AvailabilitySubmissionItem{
+			ShiftID: shiftId,
+			Days:    days,
+		})
+	}
+
+	return res, nil
 }

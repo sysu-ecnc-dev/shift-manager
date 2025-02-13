@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"database/sql"
 	"errors"
 	"net/http"
 	"slices"
@@ -87,4 +88,22 @@ func (h *Handler) SubmitAvailability(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.successResponse(w, r, "提交成功", submission)
+}
+
+func (h *Handler) GetSubmission(w http.ResponseWriter, r *http.Request) {
+	planWithTemplate := r.Context().Value(LatestSubmissionAvailablePlanCtx).(map[string]interface{})
+	userInfo := r.Context().Value(MyInfoCtx).(*domain.User)
+
+	submission, err := h.repository.GetSubmissionByUsernameAndPlanName(userInfo.Username, planWithTemplate["plan"].(*domain.SchedulePlan).Name)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			h.successResponse(w, r, "没有提交记录", nil)
+		default:
+			h.internalServerError(w, r, err)
+		}
+		return
+	}
+
+	h.successResponse(w, r, "获取提交记录成功", submission)
 }
