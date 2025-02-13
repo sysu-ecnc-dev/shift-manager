@@ -148,3 +148,8 @@ export const submitAvailability = (data: {
     "/latest-available-schedule-plan/submit-availability",
     data
   );
+
+export const getSelfSubmission = () =>
+  api.get<UnifiedResponse<AvailabilitySubmission>>(
+    "/latest-available-schedule-plan/submission"
+  );

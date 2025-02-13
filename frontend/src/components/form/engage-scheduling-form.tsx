@@ -9,10 +9,10 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { submitAvailability } from "@/lib/api";
+import { getSelfSubmission, submitAvailability } from "@/lib/api";
 import { DayOfWeek } from "@/lib/const";
 import { SchedulePlan, ScheduleTemplate } from "@/lib/types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format, isBefore, parseISO } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { useLayoutEffect, useState } from "react";
@@ -48,15 +48,29 @@ export default function EngageSchedulingForm() {
     },
   });
 
+  const { data: submissions } = useQuery({
+    queryKey: ["latest-available-schedule-plan", "your-submission"],
+    queryFn: () => getSelfSubmission().then((res) => res.data.data),
+  });
+
   // 先初始化 availabilities
   useLayoutEffect(() => {
-    setAvailabilities(
-      planWithTemplate.template.shifts.map((s) => ({
-        shiftId: s.id,
-        days: [],
-      }))
-    );
-  }, [planWithTemplate]);
+    if (submissions) {
+      setAvailabilities(
+        submissions.items.map((i) => ({
+          shiftId: i.shiftId,
+          days: i.days,
+        }))
+      );
+    } else {
+      setAvailabilities(
+        planWithTemplate.template.shifts.map((s) => ({
+          shiftId: s.id,
+          days: [],
+        }))
+      );
+    }
+  }, [planWithTemplate, submissions]);
 
   return (
     <div className="w-max mx-auto">
