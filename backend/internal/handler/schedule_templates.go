@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"database/sql"
 	"errors"
 	"net/http"
 
@@ -119,6 +120,8 @@ func (h *Handler) UpdateScheduleTemplate(w http.ResponseWriter, r *http.Request)
 			default:
 				h.internalServerError(w, r, err)
 			}
+		case errors.Is(err, sql.ErrNoRows):
+			h.errorResponse(w, r, "请重试")
 		default:
 			h.internalServerError(w, r, err)
 		}

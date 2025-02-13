@@ -207,7 +207,9 @@ func (r *Repository) GetScheduleTemplate(id int64) (*domain.ScheduleTemplate, er
 	}
 	defer rows.Close()
 
-	stm := &domain.ScheduleTemplate{}
+	st := &domain.ScheduleTemplate{
+		ID: id,
+	}
 	shiftsMap := make(map[int64]*domain.ScheduleTemplateShift)
 
 	for rows.Next() {
@@ -239,12 +241,12 @@ func (r *Repository) GetScheduleTemplate(id int64) (*domain.ScheduleTemplate, er
 			return nil, err
 		}
 
-		if stm.Name == "" {
+		if st.Name == "" {
 			// 说明此时是第一次查到这个模板，需要初始化这个模板
-			stm.Name = row.Name
-			stm.Description = row.Description
-			stm.CreatedAt = row.CreatedAt
-			stm.Version = row.Version
+			st.Name = row.Name
+			st.Description = row.Description
+			st.CreatedAt = row.CreatedAt
+			st.Version = row.Version
 		}
 
 		if !row.ShiftID.Valid {
@@ -278,12 +280,12 @@ func (r *Repository) GetScheduleTemplate(id int64) (*domain.ScheduleTemplate, er
 		return nil, err
 	}
 
-	stm.Shifts = make([]domain.ScheduleTemplateShift, 0, len(shiftsMap))
+	st.Shifts = make([]domain.ScheduleTemplateShift, 0, len(shiftsMap))
 	for _, shift := range shiftsMap {
-		stm.Shifts = append(stm.Shifts, *shift)
+		st.Shifts = append(st.Shifts, *shift)
 	}
 
-	return stm, nil
+	return st, nil
 }
 
 func (r *Repository) GetScheduleTemplateID(name string) (int64, error) {
