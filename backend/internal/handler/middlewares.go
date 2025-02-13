@@ -247,3 +247,39 @@ func (h *Handler) preventSeparatedAssistant(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+func (h *Handler) latestSubmissionAvailablePlan(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		plan, err := h.repository.GetLatestSubmissionAvailablePlan()
+		if err != nil {
+			switch {
+			case errors.Is(err, sql.ErrNoRows):
+				h.errorResponse(w, r, "没有可以参与的排班计划")
+			default:
+				h.internalServerError(w, r, err)
+			}
+			return
+		}
+
+		plan.Status = utils.CalculateSchedulePlanStatus(plan)
+
+		// 此时还应该将对应的排班模板返回
+		templateID, err := h.repository.GetScheduleTemplateID(plan.ScheduleTemplateName)
+		if err != nil {
+			h.internalServerError(w, r, err)
+			return
+		}
+
+		template, err := h.repository.GetScheduleTemplate(templateID)
+		if err != nil {
+			h.internalServerError(w, r, err)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), LatestSubmissionAvailablePlanCtx, map[string]interface{}{
+			"plan":     plan,
+			"template": template,
+		})
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}

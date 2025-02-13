@@ -116,7 +116,9 @@ func (h *Handler) RegisterRoutes() {
 		r.Route("/latest-available-schedule-plan", func(r chi.Router) {
 			r.Use(h.myInfo)
 			r.Use(h.preventSeparatedAssistant)
+			r.Use(h.latestSubmissionAvailablePlan)
 			r.Get("/", h.GetLatestSubmissionAvailablePlan)
+			r.Post("/submit-availability", h.SubmitAvailability)
 		})
 	})
 }

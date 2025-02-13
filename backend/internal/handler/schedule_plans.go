@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"database/sql"
 	"errors"
 	"net/http"
 	"time"
@@ -170,38 +169,4 @@ func (h *Handler) GetAllSchedulePlans(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.successResponse(w, r, "获取所有排班计划成功", plans)
-}
-
-func (h *Handler) GetLatestSubmissionAvailablePlan(w http.ResponseWriter, r *http.Request) {
-	plan, err := h.repository.GetLatestSubmissionAvailablePlan()
-	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			// 此时应该返回成功的响应
-			h.successResponse(w, r, "获取最新开放提交的排班计划成功", nil)
-		default:
-			h.internalServerError(w, r, err)
-		}
-		return
-	}
-
-	plan.Status = utils.CalculateSchedulePlanStatus(plan)
-
-	// 此时还应该将对应的排班模板返回
-	templateID, err := h.repository.GetScheduleTemplateID(plan.ScheduleTemplateName)
-	if err != nil {
-		h.internalServerError(w, r, err)
-		return
-	}
-
-	template, err := h.repository.GetScheduleTemplate(templateID)
-	if err != nil {
-		h.internalServerError(w, r, err)
-		return
-	}
-
-	h.successResponse(w, r, "获取最新开放提交的排班计划成功", map[string]interface{}{
-		"plan":     plan,
-		"template": template,
-	})
 }
