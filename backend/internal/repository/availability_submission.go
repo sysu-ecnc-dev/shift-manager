@@ -66,7 +66,7 @@ func (r *Repository) InsertAvailabilitySubmission(submission *domain.Availabilit
 	return nil
 }
 
-func (r *Repository) DeleteAvailabilitySubmissionByUsernameAndTemplateName(username string, templateName string) error {
+func (r *Repository) DeleteAvailabilitySubmission(username string, planName string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(r.cfg.Database.QueryTimeout)*time.Second)
 	defer cancel()
 
@@ -76,7 +76,7 @@ func (r *Repository) DeleteAvailabilitySubmissionByUsernameAndTemplateName(usern
 		AND schedule_plan_id = (SELECT id FROM schedule_plans WHERE name = $2)
 	`
 
-	if _, err := r.dbpool.ExecContext(ctx, query, username, templateName); err != nil {
+	if _, err := r.dbpool.ExecContext(ctx, query, username, planName); err != nil {
 		return err
 	}
 

@@ -63,7 +63,7 @@ func (h *Handler) SubmitAvailability(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 先删除之前的提交记录
-	if err := h.repository.DeleteAvailabilitySubmissionByUsernameAndTemplateName(userInfo.Username, template.Meta.Name); err != nil {
+	if err := h.repository.DeleteAvailabilitySubmission(userInfo.Username, plan.Name); err != nil {
 		h.internalServerError(w, r, err)
 		return
 	}
