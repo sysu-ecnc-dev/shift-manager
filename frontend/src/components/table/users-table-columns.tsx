@@ -31,6 +31,7 @@ export const usersTableColumns: ColumnDef<User>[] = [
         onCheckedChange={(value) => row.toggleSelected(!!value)}
       />
     ),
+    enableHiding: false,
   },
   {
     accessorKey: "username",
@@ -133,5 +134,6 @@ export const usersTableColumns: ColumnDef<User>[] = [
     cell: ({ row }) => {
       return <UsersTableOperationCell user={row.original} />;
     },
+    enableHiding: false,
   },
 ];

@@ -16,16 +16,11 @@ import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { PendingButton } from "@/components/pending-button";
-
-interface Props {
-  onDialogOpenChange: (open: boolean) => void;
-}
+import useAddScheduleTemplateDialogStore from "@/store/use-add-schedule-template-dialog-store";
 
 const schema = z.object({
-  meta: z.object({
-    name: z.string().min(1, { message: "模板名称不能为空" }),
-    description: z.string(),
-  }),
+  name: z.string().min(1, { message: "模板名称不能为空" }),
+  description: z.string(),
   shifts: z.array(
     z.object({
       startTime: z.string().time({ precision: 0, message: "开始时间格式错误" }),
@@ -40,14 +35,13 @@ const schema = z.object({
   ),
 });
 
-export default function AddScheduleTemplateForm({ onDialogOpenChange }: Props) {
+export default function AddScheduleTemplateForm() {
+  const { setOpen } = useAddScheduleTemplateDialogStore();
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: {
-      meta: {
-        name: "",
-        description: "",
-      },
+      name: "",
+      description: "",
       shifts: [],
     },
   });
@@ -62,13 +56,9 @@ export default function AddScheduleTemplateForm({ onDialogOpenChange }: Props) {
     onSuccess: (res) => {
       queryClient.setQueryData(
         ["schedule-templates"],
-        (old: ScheduleTemplate[]) => [...old, res.data.meta]
+        (old: ScheduleTemplate[]) => [...old, res.data]
       );
-      queryClient.setQueryData(
-        ["schedule-templates", res.data.meta.id],
-        res.data
-      );
-      onDialogOpenChange(false);
+      setOpen(false);
       toast.success(res.message);
       form.reset();
     },
@@ -94,12 +84,13 @@ export default function AddScheduleTemplateForm({ onDialogOpenChange }: Props) {
             <Label className="col-span-1 text-right">模板名称</Label>
             <Input
               className="col-span-5"
-              {...form.register("meta.name")}
+              {...form.register("name")}
               placeholder="请输入模板名称"
+              autoComplete="off"
             />
-            {form.formState.errors.meta?.name && (
+            {form.formState.errors.name && (
               <span className="col-span-5 col-start-2 text-destructive text-sm">
-                {form.formState.errors.meta.name.message}
+                {form.formState.errors.name.message}
               </span>
             )}
           </div>
@@ -108,8 +99,9 @@ export default function AddScheduleTemplateForm({ onDialogOpenChange }: Props) {
             <Label className="col-span-1 text-right">模板描述</Label>
             <Input
               className="col-span-5"
-              {...form.register("meta.description")}
+              {...form.register("description")}
               placeholder="请输入模板描述（可选）"
+              autoComplete="off"
             />
           </div>
         </div>

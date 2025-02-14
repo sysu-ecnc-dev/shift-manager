@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { createSchedulePlan, getAllScheduleTemplates } from "@/lib/api";
+import { createSchedulePlan, getScheduleTemplates } from "@/lib/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -100,7 +100,7 @@ export default function AddSchedulePlanForm({ onDialogOpenChange }: Props) {
     error,
   } = useQuery({
     queryKey: ["schedule-templates"],
-    queryFn: () => getAllScheduleTemplates().then((res) => res.data.data),
+    queryFn: () => getScheduleTemplates().then((res) => res.data.data),
   });
 
   if (isPending) return null;

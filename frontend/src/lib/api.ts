@@ -73,14 +73,12 @@ export const updateUserPassword = (id: number, data: { password: string }) =>
 export const deleteUser = (id: number) =>
   api.delete<UnifiedResponse<null>>(`/users/${id}`);
 
-export const getAllScheduleTemplates = () =>
+export const getScheduleTemplates = () =>
   api.get<UnifiedResponse<ScheduleTemplate[]>>("/schedule-templates");
 
 export const createScheduleTemplate = (data: {
-  meta: {
-    name: string;
-    description: string;
-  };
+  name: string;
+  description: string;
   shifts: {
     startTime: string;
     endTime: string;

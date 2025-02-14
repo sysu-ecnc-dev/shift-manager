@@ -17,26 +17,21 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateScheduleTemplate } from "@/lib/api";
 import { toast } from "sonner";
 import { PendingButton } from "@/components/pending-button";
-
-interface Props {
-  originalScheduleTemplate: ScheduleTemplate;
-  onDialogOpenChange: (open: boolean) => void;
-}
+import useEditScheduleTemplateDialogStore from "@/store/use-edit-schedule-template-dialog-store";
 
 const schema = z.object({
   name: z.string().min(1, "名称不能为空"),
   description: z.string(),
 });
 
-export default function UpdateScheduleTemplateForm({
-  originalScheduleTemplate,
-  onDialogOpenChange,
-}: Props) {
+export default function UpdateScheduleTemplateForm() {
+  const { setOpen, scheduleTemplate } = useEditScheduleTemplateDialogStore();
+
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: {
-      name: originalScheduleTemplate.name,
-      description: originalScheduleTemplate.description,
+      name: scheduleTemplate?.name,
+      description: scheduleTemplate?.description,
     },
   });
 
@@ -44,7 +39,7 @@ export default function UpdateScheduleTemplateForm({
 
   const updateMutation = useMutation({
     mutationFn: (data: z.infer<typeof schema>) => {
-      return updateScheduleTemplate(originalScheduleTemplate.id, data).then(
+      return updateScheduleTemplate(scheduleTemplate!.id, data).then(
         (res) => res.data
       );
     },
@@ -53,11 +48,11 @@ export default function UpdateScheduleTemplateForm({
         ["schedule-templates"],
         (old: ScheduleTemplate[]) =>
           old.map((template) =>
-            template.id === originalScheduleTemplate.id ? res.data : template
+            template.id === scheduleTemplate!.id ? res.data : template
           )
       );
       toast.success(res.message);
-      onDialogOpenChange(false);
+      setOpen(false);
     },
     onError: (err) => {
       toast.error(err.message);

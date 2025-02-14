@@ -1,17 +1,24 @@
 import { Button } from "@/components/ui/button";
 import { createFileRoute } from "@tanstack/react-router";
 import ScheduleTemplatesTable from "@/components/table/schedule-templates-table";
-import { useState } from "react";
 import AddScheduleTemplateDialog from "@/components/dialog/add-schedule-template-dialog";
-
+import { getScheduleTemplatesQueryOptions } from "@/lib/queryOptions";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import useAddScheduleTemplateDialogStore from "@/store/use-add-schedule-template-dialog-store";
+import ShowScheduleTemplateDetailsDialog from "@/components/dialog/show-schedule-template-details-dialog";
+import EditScheduleTemplateDialog from "@/components/dialog/edit-schedule-template-dialog";
+import DeleteScheduleTemplateDialog from "@/components/dialog/delete-schedule-template-dialog";
 export const Route = createFileRoute(
   "/_dashboard/management/schedule-templates"
 )({
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData(getScheduleTemplatesQueryOptions()),
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const [open, setOpen] = useState(false);
+  const { setOpen } = useAddScheduleTemplateDialogStore();
+  const { data } = useSuspenseQuery(getScheduleTemplatesQueryOptions());
 
   return (
     <>
@@ -25,9 +32,12 @@ function RouteComponent() {
           </div>
           <Button onClick={() => setOpen(true)}>添加班表模板</Button>
         </div>
-        <ScheduleTemplatesTable />
+        <ScheduleTemplatesTable scheduleTemplates={data} />
       </div>
-      <AddScheduleTemplateDialog open={open} onOpenChange={setOpen} />
+      <AddScheduleTemplateDialog />
+      <ShowScheduleTemplateDetailsDialog />
+      <EditScheduleTemplateDialog />
+      <DeleteScheduleTemplateDialog />
     </>
   );
 }

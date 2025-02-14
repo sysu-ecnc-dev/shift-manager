@@ -9,33 +9,29 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DayOfWeek } from "@/lib/const";
-import { ScheduleTemplate } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import useShowScheduleTemplateDialogDetailsStore from "@/store/use-show-schedule-template-dialog-details-store";
 import { User } from "lucide-react";
-interface Props {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  scheduleTemplate: ScheduleTemplate;
-}
 
-export default function ShowScheduleTemplateDetailDialog({
-  open,
-  onOpenChange,
-  scheduleTemplate,
-}: Props) {
+export default function ShowScheduleTemplateDetailsDialog() {
+  const { open, setOpen, scheduleTemplate } =
+    useShowScheduleTemplateDialogDetailsStore();
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
         <DialogHeader>
-          <DialogHeader>{scheduleTemplate.name}</DialogHeader>
+          <DialogHeader>{scheduleTemplate?.name}</DialogHeader>
           <DialogDescription
             className={cn(
-              scheduleTemplate.description.length <= 0 &&
+              scheduleTemplate?.description &&
+                scheduleTemplate?.description.length <= 0 &&
                 "text-muted-foreground"
             )}
           >
-            {scheduleTemplate.description.length > 0
-              ? scheduleTemplate.description
+            {scheduleTemplate?.description &&
+            scheduleTemplate?.description.length > 0
+              ? scheduleTemplate?.description
               : "此模板无描述"}
           </DialogDescription>
         </DialogHeader>

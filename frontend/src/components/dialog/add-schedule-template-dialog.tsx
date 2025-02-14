@@ -6,18 +6,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import AddScheduleTemplateForm from "@/components/form/add-schedule-template-form";
+import useAddScheduleTemplateDialogStore from "@/store/use-add-schedule-template-dialog-store";
 
-interface Props {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
+export default function AddScheduleTemplateDialog() {
+  const { open, setOpen } = useAddScheduleTemplateDialogStore();
 
-export default function AddScheduleTemplateDialog({
-  open,
-  onOpenChange,
-}: Props) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>添加班表模板</DialogTitle>
@@ -25,7 +20,7 @@ export default function AddScheduleTemplateDialog({
             班表模板一旦被创建，就只能修改其名称和描述
           </DialogDescription>
         </DialogHeader>
-        <AddScheduleTemplateForm onDialogOpenChange={onOpenChange} />
+        <AddScheduleTemplateForm />
       </DialogContent>
     </Dialog>
   );
