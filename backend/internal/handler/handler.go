@@ -80,6 +80,7 @@ func (h *Handler) RegisterRoutes() {
 				r.Get("/", h.GetUserInfo)
 				r.With(h.preventOperateInitialAdmin).With(h.RequiredRole([]domain.Role{domain.RoleBlackCore})).Patch("/", h.UpdateUser)
 				r.With(h.preventOperateInitialAdmin).With(h.RequiredRole([]domain.Role{domain.RoleBlackCore})).Delete("/", h.DeleteUser)
+				r.With(h.preventOperateInitialAdmin).With(h.RequiredRole([]domain.Role{domain.RoleBlackCore})).Patch("/password", h.UpdateUserPassword)
 			})
 		})
 

@@ -127,6 +127,8 @@ func (h *Handler) GetUserInfo(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	var req struct {
+		FullName *string `json:"fullName"`
+		Email    *string `json:"email" validate:"omitempty,email"`
 		Role     *string `json:"role" validate:"omitempty,oneof=普通助理 资深助理 黑心"`
 		IsActive *bool   `json:"isActive"`
 	}
@@ -142,6 +144,12 @@ func (h *Handler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	user := r.Context().Value(UserInfoCtx).(*domain.User)
 
+	if req.FullName != nil {
+		user.FullName = *req.FullName
+	}
+	if req.Email != nil {
+		user.Email = *req.Email
+	}
 	if req.Role != nil {
 		user.Role = domain.Role(*req.Role)
 	}
@@ -150,7 +158,17 @@ func (h *Handler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.repository.UpdateUser(user); err != nil {
+		var pgErr *pgconn.PgError
 		switch {
+		case errors.As(err, &pgErr):
+			switch {
+			case pgErr.ConstraintName == "users_email_key":
+				h.badRequest(w, r, errors.New("邮箱已存在"))
+			case pgErr.ConstraintName == "users_username_key":
+				h.badRequest(w, r, errors.New("用户名已存在"))
+			default:
+				h.internalServerError(w, r, err)
+			}
 		case errors.Is(err, sql.ErrNoRows):
 			h.errorResponse(w, r, "更新用户信息失败，请重试")
 		default:
@@ -171,4 +189,36 @@ func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.successResponse(w, r, "删除用户成功", nil)
+}
+
+func (h *Handler) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value(UserInfoCtx).(*domain.User)
+
+	var req struct {
+		Password string `json:"password" validate:"required"`
+	}
+
+	if err := h.readJSON(r, &req); err != nil {
+		h.badRequest(w, r, err)
+		return
+	}
+	if err := h.validate.Struct(req); err != nil {
+		h.badRequest(w, r, err)
+		return
+	}
+
+	// 对密码进行哈希
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		h.internalServerError(w, r, err)
+		return
+	}
+
+	user.PasswordHash = string(hashedPassword)
+	if err := h.repository.UpdateUser(user); err != nil {
+		h.internalServerError(w, r, err)
+		return
+	}
+
+	h.successResponse(w, r, "修改密码成功", nil)
 }
