@@ -1,8 +1,9 @@
-import { createRootRoute, Outlet } from "@tanstack/react-router";
-import { lazy } from "react";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { Toaster } from "@/components/ui/sonner";
 import ThemeProvider from "@/components/provider/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
+import { QueryClient } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
+import { lazy } from "react";
 
 const TanStackRouterDevtools =
   process.env.NODE_ENV === "production"
@@ -16,7 +17,9 @@ const TanStackRouterDevtools =
         }))
       );
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<{
+  queryClient: QueryClient;
+}>()({
   component: () => (
     <ThemeProvider>
       <Outlet />

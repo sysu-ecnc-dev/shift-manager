@@ -6,7 +6,7 @@ import { formatISO, parseISO } from "date-fns";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { DateRangePicker } from "@/components/form/date-range-picker";
+import { DateRangePicker } from "@/components/date-range-picker";
 import { updateSchedulePlan } from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";

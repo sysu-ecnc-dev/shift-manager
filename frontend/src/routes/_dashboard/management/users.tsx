@@ -1,15 +1,21 @@
 import AddUserDialog from "@/components/dialog/add-user-dialog";
+import EditUserDialog from "@/components/dialog/edit-user-dialog";
 import UsersTable from "@/components/table/users-table";
 import { Button } from "@/components/ui/button";
+import { getUsersQueryOptions } from "@/lib/queryOptions";
+import useAddUserDialogStore from "@/store/use-add-user-dialog-store";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
 
 export const Route = createFileRoute("/_dashboard/management/users")({
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData(getUsersQueryOptions()),
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const [open, setOpen] = useState(false);
+  const { setOpen } = useAddUserDialogStore();
+  const { data: users } = useSuspenseQuery(getUsersQueryOptions());
 
   return (
     <>
@@ -23,9 +29,10 @@ function RouteComponent() {
           </div>
           <Button onClick={() => setOpen(true)}>添加用户</Button>
         </div>
-        <UsersTable />
+        <UsersTable users={users} />
       </div>
-      <AddUserDialog open={open} onOpenChange={setOpen} />
+      <AddUserDialog />
+      <EditUserDialog />
     </>
   );
 }

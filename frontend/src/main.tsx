@@ -5,16 +5,6 @@ import "./index.css";
 import { routeTree } from "./routeTree.gen";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-const router = createRouter({
-  routeTree,
-});
-
-declare module "@tanstack/react-router" {
-  interface Register {
-    router: typeof router;
-  }
-}
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -23,6 +13,19 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       gcTime: Infinity,
     },
+  },
+});
+
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: typeof router;
+  }
+}
+
+const router = createRouter({
+  routeTree,
+  context: {
+    queryClient,
   },
 });
 

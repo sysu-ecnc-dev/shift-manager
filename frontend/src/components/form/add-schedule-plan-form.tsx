@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { SchedulePlan } from "@/lib/types";
 import { PendingButton } from "@/components/pending-button";
-import { DateRangePicker } from "./date-range-picker";
+import { DateRangePicker } from "../date-range-picker";
 
 const schema = z
   .object({

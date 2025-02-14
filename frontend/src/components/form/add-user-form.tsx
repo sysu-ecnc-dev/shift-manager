@@ -22,7 +22,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { PendingButton } from "../pending-button";
+import { PendingButton } from "@/components/pending-button";
+import useAddUserDialogStore from "@/store/use-add-user-dialog-store";
 
 const schema = z.object({
   username: z.string().min(1, "请输入用户名"),
@@ -31,11 +32,9 @@ const schema = z.object({
   role: z.string().min(1, "请选择角色"),
 });
 
-interface props {
-  onDialogOpenChange: (open: boolean) => void;
-}
+export default function CreateUserForm() {
+  const { setOpen } = useAddUserDialogStore();
 
-export default function CreateUserForm({ onDialogOpenChange }: props) {
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -57,7 +56,7 @@ export default function CreateUserForm({ onDialogOpenChange }: props) {
         res.data,
       ]);
       toast.success(res.message);
-      onDialogOpenChange(false);
+      setOpen(false);
     },
     onError: (error) => {
       toast.error(error.message);
