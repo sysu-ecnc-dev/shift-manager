@@ -11,7 +11,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { PendingButton } from "../pending-button";
 import { Separator } from "../ui/separator";
 
-const passwordSchema = z
+export const PasswordSchema = z
   .string()
   .min(8, "密码不能少于 8 位")
   .regex(/[A-Za-z]/, "密码必须要包含一个字母")
@@ -21,7 +21,7 @@ const schema = z
   .object({
     username: z.string().min(1, "用户名不能为空"),
     otp: z.string().length(6, "验证码长度为6位"),
-    newPassword: passwordSchema,
+    newPassword: PasswordSchema,
     confirmPassword: z.string(),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {

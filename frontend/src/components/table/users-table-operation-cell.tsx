@@ -10,6 +10,7 @@ import { MoreHorizontalIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { User } from "@/lib/types";
 import useEditUserDialogStore from "@/store/use-edit-user-dialog-store";
+import useChangeUserPasswordDialogStore from "@/store/use-change-user-password-dialog-store";
 
 interface Props {
   user: User;
@@ -18,6 +19,10 @@ interface Props {
 export default function UsersTableOperationCell({ user }: Props) {
   const { setOpen: setEditUserDialogOpen, setUser: setEditUserDialogUser } =
     useEditUserDialogStore();
+  const {
+    setOpen: setChangeUserPasswordDialogOpen,
+    setUser: setChangeUserPasswordDialogUser,
+  } = useChangeUserPasswordDialogStore();
 
   return (
     <DropdownMenu>
@@ -36,7 +41,14 @@ export default function UsersTableOperationCell({ user }: Props) {
         >
           编辑用户
         </DropdownMenuItem>
-        <DropdownMenuItem>修改密码</DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => {
+            setChangeUserPasswordDialogOpen(true);
+            setChangeUserPasswordDialogUser(user);
+          }}
+        >
+          修改密码
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem className="text-destructive">
           删除用户

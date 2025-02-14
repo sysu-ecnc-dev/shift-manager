@@ -67,6 +67,9 @@ export const updateUser = (
   data: { fullName?: string; email?: string; role?: string; isActive?: boolean }
 ) => api.patch<UnifiedResponse<User>>(`/users/${id}`, data);
 
+export const updateUserPassword = (id: number, data: { password: string }) =>
+  api.patch<UnifiedResponse<null>>(`/users/${id}/password`, data);
+
 export const deleteUser = (id: number) =>
   api.delete<UnifiedResponse<null>>(`/users/${id}`);
 
