@@ -2,6 +2,7 @@ import AddUserDialog from "@/components/dialog/add-user-dialog";
 import ChangeUserPasswordDialog from "@/components/dialog/change-user-password-dialog";
 import EditUserDialog from "@/components/dialog/edit-user-dialog";
 import UsersTable from "@/components/table/users-table";
+import DeleteUserDialog from "@/components/dialog/delete-user-dialog";
 import { Button } from "@/components/ui/button";
 import { getUsersQueryOptions } from "@/lib/queryOptions";
 import useAddUserDialogStore from "@/store/use-add-user-dialog-store";
@@ -35,6 +36,7 @@ function RouteComponent() {
       <AddUserDialog />
       <EditUserDialog />
       <ChangeUserPasswordDialog />
+      <DeleteUserDialog />
     </>
   );
 }
