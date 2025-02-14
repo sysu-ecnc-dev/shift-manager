@@ -93,8 +93,8 @@ importers:
         specifier: ^18.3.1
         version: 18.3.1
       react-day-picker:
-        specifier: 9.5.1
-        version: 9.5.1(react@18.3.1)
+        specifier: 8.10.1
+        version: 8.10.1(date-fns@4.1.0)(react@18.3.1)
       react-dom:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
@@ -279,9 +279,6 @@ packages:
   '@babel/types@7.26.7':
     resolution: {integrity: sha512-t8kDRGrKXyp6+tjUh7hw2RLyclsW4TRoRvRHtSyAX9Bb5ldlFh+90YAYY6awRXrlB4G5G2izNeGySpATlFzmOg==}
     engines: {node: '>=6.9.0'}
-
-  '@date-fns/tz@1.2.0':
-    resolution: {integrity: sha512-LBrd7MiJZ9McsOgxqWX7AaxrDjcFVjWH/tIKJd7pnR7McaslGYOP1QmmiBXdJH/H/yLCT+rcQ7FaPBUxRGUtrg==}
 
   '@esbuild/aix-ppc64@0.23.1':
     resolution: {integrity: sha512-6VhYk1diRqrhBAqpJEdjASR/+WVRtfjpqKuNw11cLiaWpAT/Uu+nokB+UJnevzy/P9C/ty6AOe0dwueMrGh/iQ==}
@@ -1857,9 +1854,6 @@ packages:
   csstype@3.1.3:
     resolution: {integrity: sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw==}
 
-  date-fns-jalali@4.1.0-0:
-    resolution: {integrity: sha512-hTIP/z+t+qKwBDcmmsnmjWTduxCg+5KfdqWQvb2X/8C9+knYY6epN/pfxdDuyVlSVeFz0sM5eEfwIUQ70U4ckg==}
-
   date-fns@4.1.0:
     resolution: {integrity: sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg==}
 
@@ -2372,11 +2366,11 @@ packages:
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
-  react-day-picker@9.5.1:
-    resolution: {integrity: sha512-PxuK8inYLlYgM2zZUVBPsaBM5jI40suPeG+naKyx7kpyF032RRlEAUEjkpW9/poTASh/vyWAOVqjGuGw+47isw==}
-    engines: {node: '>=18'}
+  react-day-picker@8.10.1:
+    resolution: {integrity: sha512-TMx7fNbhLk15eqcMt+7Z7S2KF7mfTId/XJDjKE8f+IUcFn0l08/kI4FiYTL/0yuOLmEcbR4Fwe3GJf/NiiMnPA==}
     peerDependencies:
-      react: '>=16.8.0'
+      date-fns: ^2.28.0 || ^3.0.0
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
 
   react-dom@18.3.1:
     resolution: {integrity: sha512-5m4nQKp+rZRb09LNH59GM4BxTh9251/ylbKIbpe7TpGxfJ+9kv6BLkLBXIjjspbgbnIBNqlI23tRnTWT0snUIw==}
@@ -2876,8 +2870,6 @@ snapshots:
     dependencies:
       '@babel/helper-string-parser': 7.25.9
       '@babel/helper-validator-identifier': 7.25.9
-
-  '@date-fns/tz@1.2.0': {}
 
   '@esbuild/aix-ppc64@0.23.1':
     optional: true
@@ -4329,8 +4321,6 @@ snapshots:
 
   csstype@3.1.3: {}
 
-  date-fns-jalali@4.1.0-0: {}
-
   date-fns@4.1.0: {}
 
   debug@4.4.0:
@@ -4818,11 +4808,9 @@ snapshots:
 
   queue-microtask@1.2.3: {}
 
-  react-day-picker@9.5.1(react@18.3.1):
+  react-day-picker@8.10.1(date-fns@4.1.0)(react@18.3.1):
     dependencies:
-      '@date-fns/tz': 1.2.0
       date-fns: 4.1.0
-      date-fns-jalali: 4.1.0-0
       react: 18.3.1
 
   react-dom@18.3.1(react@18.3.1):

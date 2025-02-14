@@ -1,7 +1,7 @@
-import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
-import { startOfDay, endOfDay } from "date-fns";
+import { format, Locale } from "date-fns";
 import { CalendarIcon } from "lucide-react";
+import { DateRange } from "react-day-picker";
+
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -9,79 +9,70 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { enUS } from "date-fns/locale";
 
-interface DateRangePickerProps {
-  label: string;
-  startDate?: Date;
-  endDate?: Date;
-  onRangeChange: (range: { start?: Date; end?: Date }) => void;
-  error?: string;
+interface Props {
+  value: DateRange | undefined;
+  onValueChange: (value: DateRange | undefined) => void;
+  locale?: Locale;
   disabled?: boolean;
 }
 
 export function DateRangePicker({
-  label,
-  startDate,
-  endDate,
-  onRangeChange,
-  error,
-  disabled = false,
-}: DateRangePickerProps) {
+  value,
+  onValueChange,
+  locale,
+  className,
+  disabled,
+}: Props & React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className="grid gap-2">
-      <Label>{label}</Label>
+    <div className={cn("grid gap-2", className)}>
       <Popover modal={true}>
-        <PopoverTrigger asChild disabled={disabled}>
+        <PopoverTrigger asChild>
           <Button
-            variant="outline"
+            id="date"
+            variant={"outline"}
             className={cn(
-              "justify-start",
-              !startDate && "text-muted-foreground"
+              "justify-start text-left font-normal",
+              !value && "text-muted-foreground"
             )}
+            disabled={disabled}
           >
             <CalendarIcon />
-            {startDate ? (
-              endDate ? (
+            {value?.from ? (
+              value.to ? (
                 <>
-                  {format(startDate, "yyyy-MM-dd HH:mm:ss EEEE", {
-                    locale: zhCN,
+                  {format(value.from, "yyyy-MM-dd EEEE", {
+                    locale: locale ?? enUS,
                   })}{" "}
                   ~{" "}
-                  {format(endDate, "yyyy-MM-dd HH:mm:ss EEEE", {
-                    locale: zhCN,
+                  {format(value.to, "yyyy-MM-dd EEEE", {
+                    locale: locale ?? enUS,
                   })}
                 </>
               ) : (
-                format(startDate, "yyyy-MM-dd HH:mm:ss EEEE", {
-                  locale: zhCN,
+                format(value.from, "yyyy-MM-dd EEEE", {
+                  locale: locale ?? enUS,
                 })
               )
             ) : (
-              <span>请选择日期范围</span>
+              <span className="text-muted-foreground">请选择一个日期</span>
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="center">
+        <PopoverContent className="w-auto p-0" align="start">
           <Calendar
+            initialFocus
             mode="range"
-            selected={{ from: startDate, to: endDate }}
-            onSelect={(date) => {
-              onRangeChange({
-                start: date?.from ? startOfDay(date.from) : undefined,
-                end: date?.to
-                  ? endOfDay(date.to)
-                  : date?.from
-                    ? endOfDay(date.from)
-                    : undefined,
-              });
-            }}
+            defaultMonth={value?.from}
+            selected={value}
+            onSelect={onValueChange}
             numberOfMonths={2}
+            locale={locale ?? enUS}
           />
         </PopoverContent>
       </Popover>
-      {error && <p className="text-destructive text-sm">{error}</p>}
     </div>
   );
 }

@@ -107,12 +107,12 @@ export const getSchedulePlans = () =>
 
 export const createSchedulePlan = (data: {
   name: string;
-  description: string;
+  description?: string;
   submissionStartTime: string;
   submissionEndTime: string;
   activeStartTime: string;
   activeEndTime: string;
-  templateName: string;
+  templateId: number;
 }) => api.post<UnifiedResponse<SchedulePlan>>("/schedule-plans", data);
 
 export const updateSchedulePlan = (

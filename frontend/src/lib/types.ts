@@ -32,7 +32,7 @@ export type SchedulePlan = {
   submissionEndTime: string;
   activeStartTime: string;
   activeEndTime: string;
-  scheduleTemplateName: string;
+  scheduleTemplateID: number;
   createdAt: string;
 };
 
@@ -44,6 +44,6 @@ export type AvailabilitySubmission = {
     {
       shiftId: number;
       days: number[];
-    },
+    }
   ];
 };

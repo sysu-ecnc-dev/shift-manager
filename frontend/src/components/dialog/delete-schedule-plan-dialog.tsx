@@ -1,41 +1,32 @@
-import { SchedulePlan } from "@/lib/types";
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { deleteSchedulePlan } from "@/lib/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { PendingButton } from "@/components/pending-button";
 import { Button } from "@/components/ui/button";
+import { deleteSchedulePlan } from "@/lib/api";
+import { SchedulePlan } from "@/lib/types";
+import useDeleteSchedulePlanDialogStore from "@/store/use-delete-schedule-plan-dialog";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
-interface Props {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  schedulePlan: SchedulePlan;
-}
-
-export default function DeleteSchedulePlanDialog({
-  open,
-  onOpenChange,
-  schedulePlan,
-}: Props) {
+export default function DeleteSchedulePlanDialog() {
+  const { open, setOpen, schedulePlan } = useDeleteSchedulePlanDialogStore();
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
     mutationFn: () =>
-      deleteSchedulePlan(schedulePlan.id).then((res) => res.data),
-    onSuccess: () => {
+      deleteSchedulePlan(schedulePlan!.id).then((res) => res.data),
+    onSuccess: (res) => {
       queryClient.setQueryData(["schedule-plans"], (old: SchedulePlan[]) =>
-        old.filter((plan) => plan.id !== schedulePlan.id)
+        old.filter((plan) => plan.id !== schedulePlan!.id)
       );
-      toast.success("删除成功");
-      onOpenChange(false);
+      toast.success(res.message);
+      setOpen(false);
     },
     onError: (error) => {
       toast.error(error.message);
@@ -43,23 +34,22 @@ export default function DeleteSchedulePlanDialog({
   });
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>删除排班计划</AlertDialogTitle>
-          <AlertDialogDescription>
-            你确定要删除{schedulePlan.name}吗？
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>取消</AlertDialogCancel>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>删除排班计划</DialogTitle>
+          <DialogDescription>
+            你确定要删除{schedulePlan?.name}吗？
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
           {deleteMutation.isPending ? (
             <PendingButton />
           ) : (
             <Button onClick={() => deleteMutation.mutate()}>删除</Button>
           )}
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

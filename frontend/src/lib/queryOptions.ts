@@ -1,5 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
-import { getScheduleTemplates, getUsers } from "@/lib/api";
+import { getSchedulePlans, getScheduleTemplates, getUsers } from "@/lib/api";
 
 export const getUsersQueryOptions = () =>
   queryOptions({
@@ -11,4 +11,10 @@ export const getScheduleTemplatesQueryOptions = () =>
   queryOptions({
     queryKey: ["schedule-templates"],
     queryFn: () => getScheduleTemplates().then((res) => res.data.data),
+  });
+
+export const getSchedulePlansQueryOptions = () =>
+  queryOptions({
+    queryKey: ["schedule-plans"],
+    queryFn: () => getSchedulePlans().then((res) => res.data.data),
   });
