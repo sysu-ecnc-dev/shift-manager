@@ -135,7 +135,18 @@ func (h *Handler) DeleteScheduleTemplate(w http.ResponseWriter, r *http.Request)
 	st := r.Context().Value(ScheduleTemplateCtx).(*domain.ScheduleTemplate)
 
 	if err := h.repository.DeleteScheduleTemplate(st.ID); err != nil {
-		h.internalServerError(w, r, err)
+		var pgErr *pgconn.PgError
+		switch {
+		case errors.As(err, &pgErr):
+			switch pgErr.ConstraintName {
+			case "schedule_plans_schedule_template_id_fkey":
+				h.errorResponse(w, r, "该模板已被应用于排班计划，无法删除")
+			default:
+				h.internalServerError(w, r, err)
+			}
+		default:
+			h.internalServerError(w, r, err)
+		}
 		return
 	}
 
