@@ -103,6 +103,13 @@ func (h *Handler) RegisterRoutes() {
 				r.Get("/", h.GetSchedulePlanByID)
 				r.With(h.RequiredRole([]domain.Role{domain.RoleBlackCore})).Patch("/", h.UpdateSchedulePlan)
 				r.With(h.RequiredRole([]domain.Role{domain.RoleBlackCore})).Delete("/", h.DeleteSchedulePlan)
+				r.Route("/your-submission", func(r chi.Router) {
+					r.Use(h.myInfo)
+					r.Use(h.preventLeavedAssistant)
+					r.Use(h.preventSubmit2unavailableSchedulePlan)
+					r.Post("/", h.SubmitYourAvailability)
+					r.Get("/", h.GetYourAvailabilitySubmission)
+				})
 			})
 		})
 	})

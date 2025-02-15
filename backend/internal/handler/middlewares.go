@@ -207,3 +207,32 @@ func (h *Handler) schedulePlan(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
+
+func (h *Handler) preventLeavedAssistant(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		myInfo := r.Context().Value(MyInfoCtx).(*domain.User)
+		if !myInfo.IsActive {
+			h.errorResponse(w, r, "您已离职")
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (h *Handler) preventSubmit2unavailableSchedulePlan(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		plan := r.Context().Value(SchedulePlanCtx).(*domain.SchedulePlan)
+
+		if plan.SubmissionStartTime.After(time.Now()) {
+			h.errorResponse(w, r, "暂未开放提交")
+			return
+		}
+
+		if plan.SubmissionEndTime.Before(time.Now()) {
+			h.errorResponse(w, r, "已截止提交")
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}

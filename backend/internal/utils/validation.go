@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/domain"
@@ -51,6 +53,40 @@ func ValidateSchedulePlanTime(plan *domain.SchedulePlan) error {
 
 	if plan.ActiveStartTime.Before(plan.SubmissionEndTime) {
 		return fmt.Errorf("生效开始时间不能早于提交结束时间")
+	}
+
+	return nil
+}
+
+func ValidateSubmissionWithTemplate(submission *domain.AvailabilitySubmission, template *domain.ScheduleTemplate) error {
+	if len(template.Shifts) != len(submission.Items) {
+		return errors.New("提交的空闲时间中的班次数量和模板中的班次数量不匹配")
+	}
+
+	for i, item := range submission.Items {
+		isValid := false
+
+		for _, shift := range template.Shifts {
+			if shift.ID == item.ShiftID {
+				containAllDays := true
+
+				for _, day := range item.Days {
+					if !slices.Contains(shift.ApplicableDays, day) {
+						containAllDays = false
+						break
+					}
+				}
+
+				if containAllDays {
+					isValid = true
+					break
+				}
+			}
+		}
+
+		if !isValid {
+			return fmt.Errorf("第 %d 项不符合模板中的班次", i+1)
+		}
 	}
 
 	return nil

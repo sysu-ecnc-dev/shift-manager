@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"database/sql"
 	"errors"
 	"net/http"
 	"time"
@@ -159,4 +160,74 @@ func (h *Handler) GetAllSchedulePlans(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.successResponse(w, r, "获取所有排班计划成功", plans)
+}
+
+func (h *Handler) SubmitYourAvailability(w http.ResponseWriter, r *http.Request) {
+	myInfo := r.Context().Value(MyInfoCtx).(*domain.User)
+	plan := r.Context().Value(SchedulePlanCtx).(*domain.SchedulePlan)
+
+	var req []struct {
+		ShiftID int64   `json:"shiftID" validate:"required"`
+		Days    []int32 `json:"days" validate:"required,dive,min=1,max=7"`
+	}
+
+	if err := h.readJSON(r, &req); err != nil {
+		h.badRequest(w, r, err)
+		return
+	}
+
+	if err := h.validate.Var(req, "required,dive"); err != nil {
+		h.badRequest(w, r, err)
+		return
+	}
+
+	submission := &domain.AvailabilitySubmission{
+		SchedulePlanID: plan.ID,
+		UserID:         myInfo.ID,
+		Items:          make([]domain.AvailabilitySubmissionItem, len(req)),
+	}
+
+	for i, item := range req {
+		submission.Items[i] = domain.AvailabilitySubmissionItem{
+			ShiftID: item.ShiftID,
+			Days:    item.Days,
+		}
+	}
+
+	// 还需要检查模板和提交的格式是否对的上
+	template, err := h.repository.GetScheduleTemplate(plan.ScheduleTemplateID)
+	if err != nil {
+		h.internalServerError(w, r, err)
+		return
+	}
+
+	if err := utils.ValidateSubmissionWithTemplate(submission, template); err != nil {
+		h.badRequest(w, r, err)
+		return
+	}
+
+	if err := h.repository.InsertAvailabilitySubmission(submission); err != nil {
+		h.internalServerError(w, r, err)
+		return
+	}
+
+	h.successResponse(w, r, "成功提交空闲时间", submission)
+}
+
+func (h *Handler) GetYourAvailabilitySubmission(w http.ResponseWriter, r *http.Request) {
+	myInfo := r.Context().Value(MyInfoCtx).(*domain.User)
+	plan := r.Context().Value(SchedulePlanCtx).(*domain.SchedulePlan)
+
+	submission, err := h.repository.GetAvailabilitySubmissionByUserIDAndSchedulePlanID(myInfo.ID, plan.ID)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			h.errorResponse(w, r, "你还没有提交过空闲时间")
+		default:
+			h.internalServerError(w, r, err)
+		}
+		return
+	}
+
+	h.successResponse(w, r, "获取空闲时间提交成功", submission)
 }
