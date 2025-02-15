@@ -192,5 +192,10 @@ func (r *Repository) GetSchedulingResultBySchedulePlanID(schedulePlanID int64) (
 		result.Shifts = append(result.Shifts, *shift)
 	}
 
+	// 还需要处理没有结果的情况
+	if result.ID == 0 {
+		return nil, sql.ErrNoRows
+	}
+
 	return result, nil
 }
