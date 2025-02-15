@@ -98,6 +98,10 @@ func ValidateSchedulingResultWithTemplate(result *domain.SchedulingResult, templ
 	}
 
 	for i, resultShift := range result.Shifts {
+		if len(resultShift.Items) != len(template.Shifts[i].ApplicableDays) {
+			return fmt.Errorf("排班结果中的第 %d 项的班次存在没有提交结果的天数", i+1)
+		}
+
 		var templateShift *domain.ScheduleTemplateShift = nil
 
 		for _, shift := range template.Shifts {
@@ -143,8 +147,15 @@ func ValidateSchedulingResultWithSubmissions(result *domain.SchedulingResult, su
 				}
 
 				// 检查这个助理是否在第 item.Day 天有空闲时间
-				if !slices.Contains(submission.Items[item.Day-1].Days, item.Day) {
-					return fmt.Errorf("班次 %d 的第 %d 天的 id 为 %d 的助理在第 %d 天没有空闲时间", i+1, item.Day, assistantID, item.Day)
+				var ok bool = false
+				for _, submissionItem := range submission.Items {
+					if submissionItem.ShiftID == shift.ShiftID && slices.Contains(submissionItem.Days, item.Day) {
+						ok = true
+						break
+					}
+				}
+				if !ok {
+					return fmt.Errorf("id 为 %d 的助理在班次 %d 的第 %d 天没有空闲时间", assistantID, shift.ShiftID, item.Day)
 				}
 			}
 		}

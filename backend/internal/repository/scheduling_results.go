@@ -29,10 +29,10 @@ func (r *Repository) InsertSchedulingResult(result *domain.SchedulingResult) err
 	query = `
 		INSERT INTO scheduling_results (schedule_plan_id)
 		VALUES ($1)
-		RETURNING id
+		RETURNING id, created_at, version
 	`
 
-	if err := tx.QueryRowContext(ctx, query, result.SchedulePlanID).Scan(&result.ID); err != nil {
+	if err := tx.QueryRowContext(ctx, query, result.SchedulePlanID).Scan(&result.ID, &result.CreatedAt, &result.Version); err != nil {
 		return err
 	}
 
