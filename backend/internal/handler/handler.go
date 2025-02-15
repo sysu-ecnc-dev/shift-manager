@@ -111,6 +111,11 @@ func (h *Handler) RegisterRoutes() {
 					r.Get("/", h.GetYourAvailabilitySubmission)
 				})
 				r.With(h.RequiredRole([]domain.Role{domain.RoleBlackCore})).Get("/submissions", h.GetSchedulePlanSubmissions) // 只有黑心能够获取所有的提交情况，防止泄露信息
+				r.Route("/scheduling-result", func(r chi.Router) {
+					r.Use(h.RequiredRole([]domain.Role{domain.RoleBlackCore}))
+					r.Post("/", h.SubmitSchedulingResult)
+					r.Get("/", h.GetSchedulingResult)
+				})
 			})
 		})
 	})

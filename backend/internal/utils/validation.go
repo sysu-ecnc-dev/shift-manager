@@ -91,3 +91,64 @@ func ValidateSubmissionWithTemplate(submission *domain.AvailabilitySubmission, t
 
 	return nil
 }
+
+func ValidateSchedulingResultWithTemplate(result *domain.SchedulingResult, template *domain.ScheduleTemplate) error {
+	if len(result.Shifts) != len(template.Shifts) {
+		return errors.New("排班结果中的班次数量和模板中的班次数量不匹配")
+	}
+
+	for i, resultShift := range result.Shifts {
+		var templateShift *domain.ScheduleTemplateShift = nil
+
+		for _, shift := range template.Shifts {
+			if shift.ID == resultShift.ShiftID {
+				templateShift = &shift
+			}
+		}
+
+		if templateShift == nil {
+			return fmt.Errorf("排班结果中的第 %d 项不存在于排班模板中", i+1)
+		}
+
+		for _, item := range resultShift.Items {
+			if !slices.Contains(templateShift.ApplicableDays, item.Day) {
+				return fmt.Errorf("排班结果中的第 %d 项的第 %d 天不符合模板中的班次", i+1, item.Day)
+			}
+			if len(item.AssistantIDs) > int(templateShift.RequiredAssistantNumber) {
+				return fmt.Errorf("排班结果中的第 %d 项的第 %d 天的助理人数超过了模板中的要求", i+1, item.Day)
+			}
+		}
+	}
+
+	return nil
+}
+
+func getSubmissionByAssistantID(submissions []*domain.AvailabilitySubmission, assistantID int64) *domain.AvailabilitySubmission {
+	for _, submission := range submissions {
+		if submission.UserID == assistantID {
+			return submission
+		}
+	}
+	return nil
+}
+
+func ValidateSchedulingResultWithSubmissions(result *domain.SchedulingResult, submissions []*domain.AvailabilitySubmission) error {
+	for i, shift := range result.Shifts {
+		for _, item := range shift.Items {
+			for _, assistantID := range item.AssistantIDs {
+				// 找到这个助理对应的提交
+				submission := getSubmissionByAssistantID(submissions, assistantID)
+				if submission == nil {
+					return fmt.Errorf("班次 %d 的第 %d 天的 id 为 %d 的助理没有提交空闲时间", i+1, item.Day, assistantID)
+				}
+
+				// 检查这个助理是否在第 item.Day 天有空闲时间
+				if !slices.Contains(submission.Items[item.Day-1].Days, item.Day) {
+					return fmt.Errorf("班次 %d 的第 %d 天的 id 为 %d 的助理在第 %d 天没有空闲时间", i+1, item.Day, assistantID, item.Day)
+				}
+			}
+		}
+	}
+
+	return nil
+}

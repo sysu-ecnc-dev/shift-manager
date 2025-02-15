@@ -243,3 +243,78 @@ func (h *Handler) GetSchedulePlanSubmissions(w http.ResponseWriter, r *http.Requ
 
 	h.successResponse(w, r, "获取该排班计划所有的提交记录成功", submissions)
 }
+
+func (h *Handler) SubmitSchedulingResult(w http.ResponseWriter, r *http.Request) {
+	plan := r.Context().Value(SchedulePlanCtx).(*domain.SchedulePlan)
+
+	var req []struct {
+		ShiftID int64 `json:"shiftID" validate:"required"`
+		Items   []struct {
+			Day          int32   `json:"day" validate:"required,min=1,max=7"`
+			AssistantIDs []int64 `json:"assistantIDs" validate:"required"`
+		} `json:"items" validate:"required,dive"`
+	}
+
+	if err := h.readJSON(r, &req); err != nil {
+		h.badRequest(w, r, err)
+		return
+	}
+	if err := h.validate.Var(req, "required,dive"); err != nil {
+		h.badRequest(w, r, err)
+		return
+	}
+
+	schedulingResult := &domain.SchedulingResult{
+		SchedulePlanID: plan.ID,
+		Shifts:         make([]domain.SchedulingResultShift, len(req)),
+	}
+
+	for i, shift := range req {
+		schedulingResult.Shifts[i] = domain.SchedulingResultShift{
+			ShiftID: shift.ShiftID,
+			Items:   make([]domain.SchedulingResultShiftItem, len(shift.Items)),
+		}
+
+		for j, item := range shift.Items {
+			schedulingResult.Shifts[i].Items[j] = domain.SchedulingResultShiftItem{
+				Day:          item.Day,
+				AssistantIDs: item.AssistantIDs,
+			}
+		}
+	}
+
+	// 必须检查提交的结果是否和模板对的上
+	template, err := h.repository.GetScheduleTemplate(plan.ScheduleTemplateID)
+	if err != nil {
+		h.internalServerError(w, r, err)
+		return
+	}
+
+	if err := utils.ValidateSchedulingResultWithTemplate(schedulingResult, template); err != nil {
+		h.badRequest(w, r, err)
+		return
+	}
+
+	// 还要检查提交的结果是否和助理提交的结果对的上
+	submissions, err := h.repository.GetAllSubmissionsBySchedulePlanID(plan.ID)
+	if err != nil {
+		h.internalServerError(w, r, err)
+		return
+	}
+
+	if err := utils.ValidateSchedulingResultWithSubmissions(schedulingResult, submissions); err != nil {
+		h.badRequest(w, r, err)
+		return
+	}
+
+	if err := h.repository.InsertSchedulingResult(schedulingResult); err != nil {
+		h.internalServerError(w, r, err)
+		return
+	}
+
+	h.successResponse(w, r, "提交排班结果成功", schedulingResult)
+}
+
+func (h *Handler) GetSchedulingResult(w http.ResponseWriter, r *http.Request) {
+
+}
