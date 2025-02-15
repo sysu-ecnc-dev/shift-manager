@@ -74,7 +74,7 @@ func (h *Handler) RegisterRoutes() {
 
 		r.Route("/users", func(r chi.Router) {
 			r.With(h.RequiredRole([]domain.Role{domain.RoleBlackCore})).Post("/", h.CreateUser)
-			r.Get("/", h.GetAllUserInfo)
+			r.Get("/", h.GetAllUserInfo) // 所有助理应该都有权限获取其他人的个人信息
 			r.Route("/{id}", func(r chi.Router) {
 				r.Use(h.userInfo)
 				r.Get("/", h.GetUserInfo)
@@ -110,6 +110,7 @@ func (h *Handler) RegisterRoutes() {
 					r.Post("/", h.SubmitYourAvailability)
 					r.Get("/", h.GetYourAvailabilitySubmission)
 				})
+				r.With(h.RequiredRole([]domain.Role{domain.RoleBlackCore})).Get("/submissions", h.GetSchedulePlanSubmissions) // 只有黑心能够获取所有的提交情况，防止泄露信息
 			})
 		})
 	})

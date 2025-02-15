@@ -231,3 +231,15 @@ func (h *Handler) GetYourAvailabilitySubmission(w http.ResponseWriter, r *http.R
 
 	h.successResponse(w, r, "获取空闲时间提交成功", submission)
 }
+
+func (h *Handler) GetSchedulePlanSubmissions(w http.ResponseWriter, r *http.Request) {
+	plan := r.Context().Value(SchedulePlanCtx).(*domain.SchedulePlan)
+
+	submissions, err := h.repository.GetAllSubmissionsBySchedulePlanID(plan.ID)
+	if err != nil {
+		h.internalServerError(w, r, err)
+		return
+	}
+
+	h.successResponse(w, r, "获取该排班计划所有的提交记录成功", submissions)
+}

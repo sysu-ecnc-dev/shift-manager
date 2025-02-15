@@ -136,3 +136,108 @@ func (r *Repository) GetAvailabilitySubmissionByUserIDAndSchedulePlanID(userID i
 
 	return submission, nil
 }
+
+func (r *Repository) GetAllSubmissionsBySchedulePlanID(schedulePlanID int64) ([]*domain.AvailabilitySubmission, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(r.cfg.Database.QueryTimeout)*time.Second)
+	defer cancel()
+
+	query := `
+		SELECT 
+			asm.id,
+			asm.user_id,
+			asmi.id,
+			asmi.schedule_template_shift_id,
+			asmiad.day_of_week,
+			asm.created_at,
+			asm.version
+		FROM availability_submissions asm
+		LEFT JOIN availability_submission_items asmi ON asm.id = asmi.availability_submission_id
+		LEFT JOIN availability_submission_item_available_days asmiad ON asmi.id = asmiad.availability_submission_item_id
+		WHERE asm.schedule_plan_id = $1
+	`
+
+	rows, err := r.dbpool.QueryContext(ctx, query, schedulePlanID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	submissionsMap := make(map[int64]*domain.AvailabilitySubmission)
+	itemsMap := make(map[int64]map[int64]*domain.AvailabilitySubmissionItem) // submissionID -> itemID -> item
+
+	for rows.Next() {
+		var row struct {
+			submissionID int64
+			userID       int64
+			itemID       sql.NullInt64
+			shiftID      sql.NullInt64
+			day          sql.NullInt32
+			createdAt    time.Time
+			version      int32
+		}
+
+		dst := []any{
+			&row.submissionID,
+			&row.userID,
+			&row.itemID,
+			&row.shiftID,
+			&row.day,
+			&row.createdAt,
+			&row.version,
+		}
+
+		if err := rows.Scan(dst...); err != nil {
+			return nil, err
+		}
+
+		if _, exists := submissionsMap[row.submissionID]; !exists {
+			submissionsMap[row.submissionID] = &domain.AvailabilitySubmission{
+				ID:             row.submissionID,
+				SchedulePlanID: schedulePlanID,
+				UserID:         row.userID,
+				CreatedAt:      row.createdAt,
+				Version:        row.version,
+			}
+			itemsMap[row.submissionID] = make(map[int64]*domain.AvailabilitySubmissionItem)
+		}
+
+		if !row.itemID.Valid {
+			// 表示这条提交记录没有提交任何班次，虽然业务上不可能出现这种情况
+			// 但为了提高代码的健壮性，这边还是需要处理
+			continue
+		}
+
+		if _, exists := itemsMap[row.submissionID][row.itemID.Int64]; !exists {
+			itemsMap[row.submissionID][row.itemID.Int64] = &domain.AvailabilitySubmissionItem{
+				ShiftID: row.shiftID.Int64,
+				Days:    make([]int32, 0),
+			}
+		}
+
+		if !row.day.Valid {
+			// 表示该班次，该用户没有提交任何可用的天数
+			continue
+		}
+
+		itemsMap[row.submissionID][row.itemID.Int64].Days = append(itemsMap[row.submissionID][row.itemID.Int64].Days, row.day.Int32)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	// 组装结果
+	for submissionID, submission := range submissionsMap {
+		submission.Items = make([]domain.AvailabilitySubmissionItem, 0, len(itemsMap[submissionID]))
+		for _, item := range itemsMap[submissionID] {
+			submission.Items = append(submission.Items, *item)
+		}
+	}
+
+	submissions := make([]*domain.AvailabilitySubmission, 0, len(submissionsMap))
+	for _, submission := range submissionsMap {
+		submissions = append(submissions, submission)
+	}
+
+	return submissions, nil
+}
