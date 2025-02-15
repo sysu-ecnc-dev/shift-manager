@@ -41,7 +41,9 @@ export default function NavManagement() {
           <SidebarMenuItem key={item.label}>
             <SidebarMenuButton
               asChild
-              isActive={location.pathname === item.href}
+              isActive={
+                location.pathname.split("/")[2] === item.href.split("/")[2]
+              }
             >
               <Link to={item.href} replace>
                 <item.icon />
