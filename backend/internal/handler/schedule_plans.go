@@ -316,5 +316,13 @@ func (h *Handler) SubmitSchedulingResult(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *Handler) GetSchedulingResult(w http.ResponseWriter, r *http.Request) {
+	plan := r.Context().Value(SchedulePlanCtx).(*domain.SchedulePlan)
 
+	schedulingResult, err := h.repository.GetSchedulingResultBySchedulePlanID(plan.ID)
+	if err != nil {
+		h.internalServerError(w, r, err)
+		return
+	}
+
+	h.successResponse(w, r, "获取排班结果成功", schedulingResult)
 }

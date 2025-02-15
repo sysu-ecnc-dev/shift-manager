@@ -2,7 +2,9 @@
 -- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS scheduling_results (
     id BIGSERIAL PRIMARY KEY,
-    schedule_plan_id INT NOT NULL REFERENCES schedule_plans(id) ON DELETE CASCADE
+    schedule_plan_id INT NOT NULL REFERENCES schedule_plans(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    version INT NOT NULL DEFAULT 1
 );
 
 CREATE TABLE IF NOT EXISTS scheduling_result_shifts (
