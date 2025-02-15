@@ -320,7 +320,12 @@ func (h *Handler) GetSchedulingResult(w http.ResponseWriter, r *http.Request) {
 
 	schedulingResult, err := h.repository.GetSchedulingResultBySchedulePlanID(plan.ID)
 	if err != nil {
-		h.internalServerError(w, r, err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			h.successResponse(w, r, "该排班计划还没有排班结果", nil)
+		default:
+			h.internalServerError(w, r, err)
+		}
 		return
 	}
 
