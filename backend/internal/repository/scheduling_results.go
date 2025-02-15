@@ -127,7 +127,9 @@ func (r *Repository) GetSchedulingResultBySchedulePlanID(schedulePlanID int64) (
 
 		dst := []any{
 			&row.resultID,
+			&row.resultShiftID,
 			&row.templateShiftID,
+			&row.resultItemID,
 			&row.dayOfWeek,
 			&row.assistantID,
 			&row.createdAt,
