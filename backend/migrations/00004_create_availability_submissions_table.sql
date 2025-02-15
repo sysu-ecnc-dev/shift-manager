@@ -3,7 +3,7 @@
 CREATE TABLE IF NOT EXISTS availability_submissions (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES users(id),
-    schedule_plan_id BIGINT NOT NULL REFERENCES schedule_plans(id),
+    schedule_plan_id BIGINT NOT NULL REFERENCES schedule_plans(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     version INT NOT NULL DEFAULT 1
 );
@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS availability_submissions (
 CREATE TABLE IF NOT EXISTS availability_submission_items (
     id BIGSERIAL PRIMARY KEY,
     availability_submission_id BIGINT NOT NULL REFERENCES availability_submissions(id) ON DELETE CASCADE,
-    schedule_template_shift_id BIGINT NOT NULL REFERENCES schedule_template_shifts(id)  
+    schedule_template_shift_id BIGINT NOT NULL REFERENCES schedule_template_shifts(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS availability_submission_item_available_days (
@@ -23,9 +23,9 @@ CREATE TABLE IF NOT EXISTS availability_submission_item_available_days (
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS availability_submissions;
+DROP TABLE IF EXISTS availability_submission_item_available_days;
 
 DROP TABLE IF EXISTS availability_submission_items;
 
-DROP TABLE IF EXISTS availability_submission_item_available_days;
+DROP TABLE IF EXISTS availability_submissions;
 -- +goose StatementEnd

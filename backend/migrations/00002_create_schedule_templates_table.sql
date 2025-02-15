@@ -29,5 +29,5 @@ DROP TABLE IF EXISTS schedule_template_shift_applicable_days;
 
 DROP TABLE IF EXISTS schedule_template_shifts;
 
-DROP TABLE IF EXISTS schedule_template_meta;
+DROP TABLE IF EXISTS schedule_templates;
 -- +goose StatementEnd
