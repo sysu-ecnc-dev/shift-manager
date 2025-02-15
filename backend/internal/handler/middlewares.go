@@ -185,11 +185,26 @@ func (h *Handler) scheduleTemplate(next http.Handler) http.Handler {
 
 func (h *Handler) schedulePlan(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		planIDParam := chi.URLParam(r, "id")
-		planID, err := strconv.ParseInt(planIDParam, 10, 64)
+		option := chi.URLParam(r, "option")
+		planID, err := strconv.ParseInt(option, 10, 64)
 		if err != nil {
-			h.errorResponse(w, r, "排班计划ID无效")
-			return
+			// 说明此时 option 不是 planID，检查是不是 latest-available
+			if option == "latest-available" {
+				// 获取最新的可提交的排班计划的 ID
+				planID, err = h.repository.GetLatestAvailableSchedulePlanID()
+				if err != nil {
+					switch {
+					case errors.Is(err, sql.ErrNoRows):
+						h.successResponse(w, r, "没有可提交的排班计划", nil)
+					default:
+						h.internalServerError(w, r, err)
+					}
+					return
+				}
+			} else {
+				h.errorResponse(w, r, "无效的选项")
+				return
+			}
 		}
 
 		sp, err := h.repository.GetSchedulePlanByID(planID)

@@ -187,3 +187,21 @@ func (r *Repository) DeleteSchedulePlan(id int64) error {
 
 	return nil
 }
+
+func (r *Repository) GetLatestAvailableSchedulePlanID() (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(r.cfg.Database.QueryTimeout)*time.Second)
+	defer cancel()
+
+	query := `
+		SELECT id FROM schedule_plans WHERE submission_end_time > NOW()
+		ORDER BY created_at DESC
+		LIMIT 1
+	`
+
+	var id int64
+	if err := r.dbpool.QueryRowContext(ctx, query).Scan(&id); err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}

@@ -222,7 +222,7 @@ func (h *Handler) GetYourAvailabilitySubmission(w http.ResponseWriter, r *http.R
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			h.errorResponse(w, r, "你还没有提交过空闲时间")
+			h.successResponse(w, r, "你还没有提交过空闲时间", nil)
 		default:
 			h.internalServerError(w, r, err)
 		}
