@@ -87,9 +87,7 @@ func (r *Repository) GetSchedulingResultBySchedulePlanID(schedulePlanID int64) (
 	query := `
 		SELECT
 			sr.id,
-			srs.id,
 			srs.schedule_template_shift_id,
-			srsi.id,
 			srsi.day_of_week,
 			srsia.user_id,
 			sr.created_at,
@@ -110,15 +108,14 @@ func (r *Repository) GetSchedulingResultBySchedulePlanID(schedulePlanID int64) (
 	result := &domain.SchedulingResult{
 		SchedulePlanID: schedulePlanID,
 	}
-	resultShiftsMap := make(map[int64]*domain.SchedulingResultShift)              // shiftID -> shift
-	resultItemsMap := make(map[int64]map[int64]*domain.SchedulingResultShiftItem) // shiftID -> itemID -> item
+
+	shiftsMap := make(map[int64]*domain.SchedulingResultShift)              // templateShiftID -> shift
+	itemsMap := make(map[int64]map[int32]*domain.SchedulingResultShiftItem) // templateShiftID -> item.Day -> item
 
 	for rows.Next() {
 		var row struct {
 			resultID        int64
-			resultShiftID   sql.NullInt64
 			templateShiftID sql.NullInt64
-			resultItemID    sql.NullInt64
 			dayOfWeek       sql.NullInt32
 			assistantID     sql.NullInt64
 			createdAt       time.Time
@@ -127,9 +124,7 @@ func (r *Repository) GetSchedulingResultBySchedulePlanID(schedulePlanID int64) (
 
 		dst := []any{
 			&row.resultID,
-			&row.resultShiftID,
 			&row.templateShiftID,
-			&row.resultItemID,
 			&row.dayOfWeek,
 			&row.assistantID,
 			&row.createdAt,
@@ -144,25 +139,25 @@ func (r *Repository) GetSchedulingResultBySchedulePlanID(schedulePlanID int64) (
 		result.CreatedAt = row.createdAt
 		result.Version = row.version
 
-		if !row.resultShiftID.Valid {
+		if !row.templateShiftID.Valid {
 			// 说明这个排班结果不存在任何班次，这在业务上是不可能，但是为了代码的健壮性，这里还是需要处理
 			continue
 		}
 
-		if _, exists := resultShiftsMap[row.resultShiftID.Int64]; !exists {
-			resultShiftsMap[row.resultShiftID.Int64] = &domain.SchedulingResultShift{
-				ShiftID: row.resultShiftID.Int64,
+		if _, exists := shiftsMap[row.templateShiftID.Int64]; !exists {
+			shiftsMap[row.templateShiftID.Int64] = &domain.SchedulingResultShift{
+				ShiftID: row.templateShiftID.Int64,
 			}
-			resultItemsMap[row.resultShiftID.Int64] = make(map[int64]*domain.SchedulingResultShiftItem)
+			itemsMap[row.templateShiftID.Int64] = make(map[int32]*domain.SchedulingResultShiftItem)
 		}
 
-		if !row.resultItemID.Valid {
+		if !row.dayOfWeek.Valid {
 			// 说明这个班次的每天都不存在排班结果，这在业务上也是不可能的
 			continue
 		}
 
-		if _, exists := resultItemsMap[row.resultShiftID.Int64][row.resultItemID.Int64]; !exists {
-			resultItemsMap[row.resultShiftID.Int64][row.resultItemID.Int64] = &domain.SchedulingResultShiftItem{
+		if _, exists := itemsMap[row.templateShiftID.Int64][row.dayOfWeek.Int32]; !exists {
+			itemsMap[row.templateShiftID.Int64][row.dayOfWeek.Int32] = &domain.SchedulingResultShiftItem{
 				Day:          row.dayOfWeek.Int32,
 				AssistantIDs: make([]int64, 0),
 			}
@@ -173,7 +168,7 @@ func (r *Repository) GetSchedulingResultBySchedulePlanID(schedulePlanID int64) (
 			continue
 		}
 
-		resultItemsMap[row.resultShiftID.Int64][row.resultItemID.Int64].AssistantIDs = append(resultItemsMap[row.resultShiftID.Int64][row.resultItemID.Int64].AssistantIDs, row.assistantID.Int64)
+		itemsMap[row.templateShiftID.Int64][row.dayOfWeek.Int32].AssistantIDs = append(itemsMap[row.templateShiftID.Int64][row.dayOfWeek.Int32].AssistantIDs, row.assistantID.Int64)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -181,14 +176,12 @@ func (r *Repository) GetSchedulingResultBySchedulePlanID(schedulePlanID int64) (
 	}
 
 	// 组装结果
-	for _, shift := range resultShiftsMap {
-		shift.Items = make([]domain.SchedulingResultShiftItem, 0, len(resultItemsMap[shift.ShiftID]))
-		for _, item := range resultItemsMap[shift.ShiftID] {
+	result.Shifts = make([]domain.SchedulingResultShift, 0, len(shiftsMap))
+	for _, shift := range shiftsMap {
+		shift.Items = make([]domain.SchedulingResultShiftItem, 0, len(itemsMap[shift.ShiftID]))
+		for _, item := range itemsMap[shift.ShiftID] {
 			shift.Items = append(shift.Items, *item)
 		}
-	}
-	result.Shifts = make([]domain.SchedulingResultShift, 0, len(resultShiftsMap))
-	for _, shift := range resultShiftsMap {
 		result.Shifts = append(result.Shifts, *shift)
 	}
 
