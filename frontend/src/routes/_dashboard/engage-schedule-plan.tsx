@@ -43,7 +43,7 @@ function RouteComponent() {
       </div>
       {/* 提交空闲时间的区域 */}
       {latestAvailableSchedulePlan ? (
-        <div className="w-max mx-auto">
+        <div className="w-max mx-auto flex-1 flex items-center justify-center">
           <EngageSchedulePlanCard schedulePlan={latestAvailableSchedulePlan} />
         </div>
       ) : (
