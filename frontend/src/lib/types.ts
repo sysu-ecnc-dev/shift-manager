@@ -36,14 +36,15 @@ export type SchedulePlan = {
   createdAt: string;
 };
 
+export type AvailabilitySubmissionItem = {
+  shiftID: number;
+  days: number[];
+};
+
 export type AvailabilitySubmission = {
   id: number;
-  schedulePlanName: string;
-  username: string;
-  items: [
-    {
-      shiftId: number;
-      days: number[];
-    }
-  ];
+  schedulePlanID: number;
+  userID: number;
+  items: AvailabilitySubmissionItem[];
+  createdAt: string;
 };

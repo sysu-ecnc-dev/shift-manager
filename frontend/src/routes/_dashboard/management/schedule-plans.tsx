@@ -1,4 +1,5 @@
 import AddSchedulePlanDialog from "@/components/dialog/add-schedule-plan-dialog";
+import DeleteSchedulePlanDialog from "@/components/dialog/delete-schedule-plan-dialog";
 import EditSchedulePlanDialog from "@/components/dialog/edit-schedule-plan-dialog";
 import SchedulePlansTable from "@/components/table/schedule-plans-table";
 import { Button } from "@/components/ui/button";
@@ -6,10 +7,9 @@ import {
   getSchedulePlansQueryOptions,
   getScheduleTemplatesQueryOptions,
 } from "@/lib/queryOptions";
+import useAddSchedulePlanDialogStore from "@/store/use-add-schedule-plan-dialog-store";
 import { useSuspenseQueries } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import useAddSchedulePlanDialogStore from "@/store/use-add-schedule-plan-dialog-store";
-import DeleteSchedulePlanDialog from "@/components/dialog/delete-schedule-plan-dialog";
 
 export const Route = createFileRoute("/_dashboard/management/schedule-plans")({
   loader: async ({ context }) =>

@@ -1,21 +1,36 @@
+import EngageSchedulePlanCard from "@/components/card/engage-schedule-plan-card";
+import {
+  getLatestAvailablePlanQueryOptions,
+  getScheduleTemplateQueryOptions,
+  getYourSubmissionQueryOptions,
+} from "@/lib/queryOptions";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import EngageSchedulingForm from "@/components/form/engage-scheduling-form";
-import { getLatestSubmissionAvailablePlan } from "@/lib/api";
-import { useQuery } from "@tanstack/react-query";
+
 export const Route = createFileRoute("/_dashboard/engage-schedule-plan")({
+  loader: async ({ context }) => {
+    const data = await context.queryClient.ensureQueryData(
+      getLatestAvailablePlanQueryOptions()
+    );
+
+    if (data) {
+      await Promise.all([
+        context.queryClient.ensureQueryData(
+          getScheduleTemplateQueryOptions(data.scheduleTemplateID)
+        ),
+        context.queryClient.ensureQueryData(
+          getYourSubmissionQueryOptions(data.id)
+        ),
+      ]);
+    }
+  },
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const { isPending, isError, error } = useQuery({
-    queryKey: ["latest-available-schedule-plan"],
-    queryFn: () =>
-      getLatestSubmissionAvailablePlan().then((res) => res.data.data),
-  });
-
-  if (isPending) {
-    return null;
-  }
+  const { data: latestAvailableSchedulePlan } = useSuspenseQuery(
+    getLatestAvailablePlanQueryOptions()
+  );
 
   return (
     <div className="px-4 flex flex-col gap-4 pt-8 h-full">
@@ -27,12 +42,14 @@ function RouteComponent() {
         </span>
       </div>
       {/* 提交空闲时间的区域 */}
-      {isError ? (
-        <div className="flex-1 border border-border border-dashed flex items-center justify-center text-muted-foreground">
-          {error.message}
+      {latestAvailableSchedulePlan ? (
+        <div className="w-max mx-auto">
+          <EngageSchedulePlanCard schedulePlan={latestAvailableSchedulePlan} />
         </div>
       ) : (
-        <EngageSchedulingForm />
+        <div className="flex-1 border border-border border-dashed flex items-center justify-center text-muted-foreground">
+          暂无可参与的排班计划
+        </div>
       )}
     </div>
   );

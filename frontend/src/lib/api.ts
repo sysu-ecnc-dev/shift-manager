@@ -1,6 +1,7 @@
 import axios from "axios";
 import {
   AvailabilitySubmission,
+  AvailabilitySubmissionItem,
   SchedulePlan,
   ScheduleTemplate,
   User,
@@ -130,26 +131,22 @@ export const updateSchedulePlan = (
 export const deleteSchedulePlan = (id: number) =>
   api.delete<UnifiedResponse<null>>(`/schedule-plans/${id}`);
 
-export const getLatestSubmissionAvailablePlan = () =>
-  api.get<
-    UnifiedResponse<{
-      plan: SchedulePlan;
-      template: ScheduleTemplate;
-    }>
-  >("/latest-available-schedule-plan");
-
-export const submitAvailability = (data: {
-  availabilities: {
-    shiftId: number;
-    days: number[];
-  }[];
-}) =>
-  api.post<UnifiedResponse<AvailabilitySubmission>>(
-    "/latest-available-schedule-plan/submit-availability",
-    data
+export const getLatestAvailablePlan = () =>
+  api.get<UnifiedResponse<SchedulePlan | null>>(
+    "/schedule-plans/latest-available"
   );
 
-export const getSelfSubmission = () =>
-  api.get<UnifiedResponse<AvailabilitySubmission>>(
-    "/latest-available-schedule-plan/submission"
+// 与提交空闲时间有关的 API
+export const submitYourAvailability = (data: {
+  schedulePlanID: number;
+  items: AvailabilitySubmissionItem[];
+}) =>
+  api.post<UnifiedResponse<AvailabilitySubmission>>(
+    `/schedule-plans/${data.schedulePlanID}/your-submission`,
+    data.items
+  );
+
+export const getYourSubmission = (schedulePlanID: number) =>
+  api.get<UnifiedResponse<AvailabilitySubmission | null>>(
+    `/schedule-plans/${schedulePlanID}/your-submission`
   );
