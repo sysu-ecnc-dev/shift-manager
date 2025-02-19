@@ -215,3 +215,33 @@ func GenerateRandomSchedulePlan(templateID int64) *domain.SchedulePlan {
 
 	return &plan
 }
+
+// 使用 Fisher-Yates 洗牌算法来生成一个随机子集
+func GenerateRandomSubset(arr []int32) []int32 {
+	arrCopy := append([]int32{}, arr...) // 复制数组，避免修改原数组
+
+	for i := 0; i < len(arrCopy)-1; i++ {
+		j := rand.Intn(len(arrCopy)-i) + i
+		arrCopy[i], arrCopy[j] = arrCopy[j], arrCopy[i]
+	}
+
+	l := rand.Intn(len(arrCopy)) + 1
+	return arrCopy[:l]
+}
+
+func GenerateRandomSubmission(st *domain.ScheduleTemplate, user *domain.User) *domain.AvailabilitySubmission {
+	as := &domain.AvailabilitySubmission{
+		SchedulePlanID: st.ID,
+		UserID:         user.ID,
+		Items:          make([]domain.AvailabilitySubmissionItem, len(st.Shifts)),
+	}
+
+	for i, shift := range st.Shifts {
+		as.Items[i] = domain.AvailabilitySubmissionItem{
+			ShiftID: shift.ID,
+			Days:    GenerateRandomSubset(shift.ApplicableDays),
+		}
+	}
+
+	return as
+}

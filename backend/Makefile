@@ -20,13 +20,23 @@ migrate-up:
 migrate-down:
 	goose down
 
-# 插入数据
+# 插入随机数据
+.PHONY: seed-users
 seed-users:
-	go run cmd/seed/main.go -op 1 -n $(n)
+	go run cmd/seed/main.go -op 1 -n $(filter-out $@,$(MAKECMDGOALS))
 
+.PHONY: seed-schedule-templates
 seed-schedule-templates:
-	go run cmd/seed/main.go -op 2 -n $(n)
+	go run cmd/seed/main.go -op 2 -n $(filter-out $@,$(MAKECMDGOALS))
 
+.PHONY: seed-schedule-plans
 seed-schedule-plans:
-	go run cmd/seed/main.go -op 3 -n $(n)
+	go run cmd/seed/main.go -op 3 -n $(filter-out $@,$(MAKECMDGOALS))
 
+.PHONY: seed-submissions
+seed-submissions:
+	go run cmd/seed/main.go -op 4 -schedule-plan-id $(filter-out $@,$(MAKECMDGOALS))
+
+# 避免 make 误报 "No rule to make target"
+%:
+	@:

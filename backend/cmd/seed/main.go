@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"flag"
 	"log/slog"
 	"math/rand"
@@ -19,9 +20,11 @@ import (
 func main() {
 	var op int
 	var n int
+	var schedulePlanID int64
 
-	flag.IntVar(&op, "op", 0, "要执行的操作 (1: 插入随机用户, 2: 插入随机班表模板, 3: 插入随机排班计划)")
-	flag.IntVar(&n, "n", 0, "要插入的记录数量")
+	flag.IntVar(&op, "op", 0, "要执行的操作 (1: 插入随机用户, 2: 插入随机班表模板, 3: 插入随机排班计划, 4: 插入提交记录)")
+	flag.IntVar(&n, "n", 5, "要插入的记录数量")
+	flag.Int64Var(&schedulePlanID, "schedule-plan-id", 0, "随机插入提交记录的排班计划 ID")
 	flag.Parse()
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
@@ -127,6 +130,51 @@ func main() {
 
 			slog.Info("插入排班计划成功", slog.Int("count", n-cnt))
 		}
+	case 4:
+		if schedulePlanID <= 0 {
+			slog.Error("请输入合法的排班计划 ID")
+			return
+		}
+
+		// 获取对应的排班计划
+		sp, err := repo.GetSchedulePlanByID(schedulePlanID)
+		if err != nil {
+			switch {
+			case errors.Is(err, sql.ErrNoRows):
+				slog.Error("指定的排班计划不存在", slog.Int64("schedule_plan_id", schedulePlanID))
+			default:
+				slog.Error("无法获取排班计划", slog.String("error", err.Error()))
+			}
+			return
+		}
+
+		// 获取对应的排班模板
+		st, err := repo.GetScheduleTemplate(sp.ScheduleTemplateID)
+		if err != nil {
+			slog.Error("无法获取排班模板", slog.String("error", err.Error()))
+			return
+		}
+
+		// 获取所有的助理信息
+		assistants, err := repo.GetAllUsers()
+		if err != nil {
+			slog.Error("无法获取所有的在职助理", slog.String("error", err.Error()))
+			return
+		}
+
+		// 为每一个助理都生成一个提交记录并插入
+		cnt := 0
+		for _, assistant := range assistants {
+			as := utils.GenerateRandomSubmission(st, assistant)
+			if err := repo.InsertAvailabilitySubmission(as); err != nil {
+				slog.Error("无法插入提交记录", slog.String("error", err.Error()))
+				continue
+			}
+
+			cnt++
+		}
+
+		slog.Info("插入提交记录成功", slog.Int("count", cnt))
 	default:
 		slog.Error("指定的操作非法")
 	}
