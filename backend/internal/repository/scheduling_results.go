@@ -62,7 +62,7 @@ func (r *Repository) InsertSchedulingResult(result *domain.SchedulingResult) err
 
 			for _, assistantID := range item.AssistantIDs {
 				query := `
-					INSERT INTO scheduling_result_shift_item_assistants (scheduling_result_shift_item_id, user_id)
+					INSERT INTO scheduling_result_shift_item_assistants (scheduling_result_shift_item_id, assistant_id)
 					VALUES ($1, $2)
 				`
 
