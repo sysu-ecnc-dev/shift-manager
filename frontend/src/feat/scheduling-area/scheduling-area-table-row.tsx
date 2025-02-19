@@ -11,10 +11,6 @@ export default function SchedulingAreaTableRow({
   templateShift,
   resultShift,
 }: Props) {
-  if (resultShift === undefined) {
-    return;
-  }
-
   return (
     <div className="grid grid-cols-8 divide-x divide-border">
       {/* 班次情况 */}
