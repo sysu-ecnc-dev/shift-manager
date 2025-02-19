@@ -11,7 +11,6 @@ CREATE TABLE IF NOT EXISTS users (
     role user_role NOT NULL,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ DEFAULT NULL,
     version INT NOT NULL DEFAULT 1
 );
 -- +goose StatementEnd

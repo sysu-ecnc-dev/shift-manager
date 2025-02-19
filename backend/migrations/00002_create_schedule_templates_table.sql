@@ -5,7 +5,6 @@ CREATE TABLE IF NOT EXISTS schedule_templates(
     name TEXT NOT NULL UNIQUE,
     description TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ DEFAULT NULL,
     version INT NOT NULL DEFAULT 1
 );
 
