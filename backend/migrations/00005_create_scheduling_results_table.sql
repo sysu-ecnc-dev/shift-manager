@@ -16,13 +16,14 @@ CREATE TABLE IF NOT EXISTS scheduling_result_shifts (
 CREATE TABLE IF NOT EXISTS scheduling_result_shift_items (
     id BIGSERIAL PRIMARY KEY,
     scheduling_result_shift_id BIGINT NOT NULL REFERENCES scheduling_result_shifts(id) ON DELETE CASCADE,
-    day_of_week INT NOT NULL
+    day_of_week INT NOT NULL,
+    principal_id BIGINT REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS scheduling_result_shift_item_assistants (
     id BIGSERIAL PRIMARY KEY,
     scheduling_result_shift_item_id BIGINT NOT NULL REFERENCES scheduling_result_shift_items(id) ON DELETE CASCADE,
-    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE
+    assistant_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE
 );
 -- +goose StatementEnd
 
