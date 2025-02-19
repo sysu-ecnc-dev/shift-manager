@@ -1,18 +1,22 @@
-import SchedulingTableRow from "@/feat/scheduling-area/scheduling-table-row";
+import SchedulingAreaTableRow from "@/feat/scheduling-area/scheduling-area-table-row";
 import { DayOfWeek } from "@/lib/const";
 import {
   getScheduleTemplateQueryOptions,
   getSchedulingResultQueryOptions,
 } from "@/lib/queryOptions";
 import { SchedulePlan, SchedulingResultShift } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { HTMLAttributes, useState } from "react";
 
-interface Props {
+interface Props extends HTMLAttributes<HTMLDivElement> {
   schedulePlan: SchedulePlan;
 }
 
-export default function SchedulingTable({ schedulePlan }: Props) {
+export default function SchedulingAreaTable({
+  className,
+  schedulePlan,
+}: Props) {
   const { data: scheduleTemplate } = useSuspenseQuery(
     getScheduleTemplateQueryOptions(schedulePlan.scheduleTemplateID)
   );
@@ -28,7 +32,12 @@ export default function SchedulingTable({ schedulePlan }: Props) {
   });
 
   return (
-    <div className="mt-2 border border-border rounded-md grid divide-y divide-border">
+    <div
+      className={cn(
+        "mt-2 border-2 border-border rounded-md grid divide-y divide-border",
+        className
+      )}
+    >
       {/* 展示星期 */}
       <div className="grid grid-cols-8 font-bold text-center divide-x divide-border">
         {[{ key: 0, label: "班次" }, ...DayOfWeek].map((day) => (
@@ -48,7 +57,7 @@ export default function SchedulingTable({ schedulePlan }: Props) {
         }
 
         return (
-          <SchedulingTableRow
+          <SchedulingAreaTableRow
             key={scheduleTemplateShift.id}
             templateShift={scheduleTemplateShift}
             resultShift={resultShift}

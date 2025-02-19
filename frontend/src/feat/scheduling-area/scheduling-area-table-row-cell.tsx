@@ -8,7 +8,7 @@ interface Props {
   requiredAssistantNumber: number;
 }
 
-export default function SchedulingTableRowCell({
+export default function SchedulingAreaTableRowCell({
   item,
   requiredAssistantNumber,
 }: Props) {

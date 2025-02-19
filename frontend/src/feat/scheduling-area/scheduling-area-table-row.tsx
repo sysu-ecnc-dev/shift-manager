@@ -1,13 +1,13 @@
 import { DayOfWeek } from "@/lib/const";
 import { ScheduleTemplateShift, SchedulingResultShift } from "@/lib/types";
-import SchedulingTableRowCell from "@/feat/scheduling-area/scheduling-table-row-cell";
+import SchedulingAreaTableRowCell from "@/feat/scheduling-area/scheduling-area-table-row-cell";
 
 interface Props {
   templateShift: ScheduleTemplateShift;
   resultShift: SchedulingResultShift;
 }
 
-export default function SchedulingTableRow({
+export default function SchedulingAreaTableRow({
   templateShift,
   resultShift,
 }: Props) {
@@ -35,7 +35,7 @@ export default function SchedulingTableRow({
         }
 
         return (
-          <SchedulingTableRowCell
+          <SchedulingAreaTableRowCell
             key={day.key}
             item={item}
             requiredAssistantNumber={templateShift.requiredAssistantNumber}
