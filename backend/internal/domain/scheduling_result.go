@@ -4,6 +4,7 @@ import "time"
 
 type SchedulingResultShiftItem struct {
 	Day          int32   `json:"day"`
+	PrincipalID  int64   `json:"principalID,omitempty"` // 当负责人的 ID 为空（0）时，表示该班次没有负责人
 	AssistantIDs []int64 `json:"assistantIDs"`
 }
 

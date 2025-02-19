@@ -20,7 +20,7 @@ func (r *Repository) InsertSchedulingResult(result *domain.SchedulingResult) err
 		_ = tx.Rollback()
 	}()
 
-	// 先将之前的排版结果删除
+	// 先将之前的排班结果删除
 	query := `DELETE FROM scheduling_results WHERE schedule_plan_id = $1`
 	if _, err := tx.ExecContext(ctx, query, result.SchedulePlanID); err != nil {
 		return err
@@ -50,13 +50,13 @@ func (r *Repository) InsertSchedulingResult(result *domain.SchedulingResult) err
 
 		for _, item := range shift.Items {
 			query := `
-				INSERT INTO scheduling_result_shift_items (scheduling_result_shift_id, day_of_week)
-				VALUES ($1, $2)
+				INSERT INTO scheduling_result_shift_items (scheduling_result_shift_id, day_of_week, principal_id)
+				VALUES ($1, $2, $3)
 				RETURNING id
 			`
 
 			var itemID int64
-			if err := tx.QueryRowContext(ctx, query, shiftID, item.Day).Scan(&itemID); err != nil {
+			if err := tx.QueryRowContext(ctx, query, shiftID, item.Day, item.PrincipalID).Scan(&itemID); err != nil {
 				return err
 			}
 
@@ -89,6 +89,7 @@ func (r *Repository) GetSchedulingResultBySchedulePlanID(schedulePlanID int64) (
 			sr.id,
 			srs.schedule_template_shift_id,
 			srsi.day_of_week,
+			srsi.principal_id,
 			srsia.user_id,
 			sr.created_at,
 			sr.version
@@ -117,6 +118,7 @@ func (r *Repository) GetSchedulingResultBySchedulePlanID(schedulePlanID int64) (
 			resultID        int64
 			templateShiftID sql.NullInt64
 			dayOfWeek       sql.NullInt32
+			principalID     sql.NullInt64
 			assistantID     sql.NullInt64
 			createdAt       time.Time
 			version         int32
@@ -126,6 +128,7 @@ func (r *Repository) GetSchedulingResultBySchedulePlanID(schedulePlanID int64) (
 			&row.resultID,
 			&row.templateShiftID,
 			&row.dayOfWeek,
+			&row.principalID,
 			&row.assistantID,
 			&row.createdAt,
 			&row.version,
@@ -159,6 +162,7 @@ func (r *Repository) GetSchedulingResultBySchedulePlanID(schedulePlanID int64) (
 		if _, exists := itemsMap[row.templateShiftID.Int64][row.dayOfWeek.Int32]; !exists {
 			itemsMap[row.templateShiftID.Int64][row.dayOfWeek.Int32] = &domain.SchedulingResultShiftItem{
 				Day:          row.dayOfWeek.Int32,
+				PrincipalID:  row.principalID.Int64,
 				AssistantIDs: make([]int64, 0),
 			}
 		}

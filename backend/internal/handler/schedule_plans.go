@@ -251,6 +251,7 @@ func (h *Handler) SubmitSchedulingResult(w http.ResponseWriter, r *http.Request)
 		ShiftID int64 `json:"shiftID" validate:"required"`
 		Items   []struct {
 			Day          int32   `json:"day" validate:"required,min=1,max=7"`
+			PrincipalID  *int64  `json:"principalID"`
 			AssistantIDs []int64 `json:"assistantIDs" validate:"required"`
 		} `json:"items" validate:"required,dive"`
 	}
@@ -279,6 +280,9 @@ func (h *Handler) SubmitSchedulingResult(w http.ResponseWriter, r *http.Request)
 			schedulingResult.Shifts[i].Items[j] = domain.SchedulingResultShiftItem{
 				Day:          item.Day,
 				AssistantIDs: item.AssistantIDs,
+			}
+			if item.PrincipalID != nil {
+				schedulingResult.Shifts[i].Items[j].PrincipalID = *item.PrincipalID
 			}
 		}
 	}

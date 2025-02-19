@@ -118,7 +118,8 @@ func ValidateSchedulingResultWithTemplate(result *domain.SchedulingResult, templ
 			if !slices.Contains(templateShift.ApplicableDays, item.Day) {
 				return fmt.Errorf("排班结果中的第 %d 项的第 %d 天不符合模板中的班次", i+1, item.Day)
 			}
-			if len(item.AssistantIDs) > int(templateShift.RequiredAssistantNumber) {
+			// +1 是因为负责人也算一个助理
+			if len(item.AssistantIDs)+1 > int(templateShift.RequiredAssistantNumber) {
 				return fmt.Errorf("排班结果中的第 %d 项的第 %d 天的助理人数超过了模板中的要求", i+1, item.Day)
 			}
 		}
@@ -139,6 +140,25 @@ func getSubmissionByAssistantID(submissions []*domain.AvailabilitySubmission, as
 func ValidateSchedulingResultWithSubmissions(result *domain.SchedulingResult, submissions []*domain.AvailabilitySubmission) error {
 	for i, shift := range result.Shifts {
 		for _, item := range shift.Items {
+			if item.PrincipalID != 0 {
+				// 找到这个负责人对应的提交
+				submission := getSubmissionByAssistantID(submissions, item.PrincipalID)
+				if submission == nil {
+					return fmt.Errorf("班次 %d 的第 %d 天的 id 为 %d 的负责人没有提交空闲时间", i+1, item.Day, item.PrincipalID)
+				}
+
+				// 检查这个负责人是否在第 item.Day 天有空闲时间
+				var ok bool = false
+				for _, submissionItem := range submission.Items {
+					if submissionItem.ShiftID == shift.ShiftID && slices.Contains(submissionItem.Days, item.Day) {
+						ok = true
+						break
+					}
+				}
+				if !ok {
+					return fmt.Errorf("id 为 %d 的负责人在班次 %d 的第 %d 天没有空闲时间", item.PrincipalID, shift.ShiftID, item.Day)
+				}
+			}
 			for _, assistantID := range item.AssistantIDs {
 				// 找到这个助理对应的提交
 				submission := getSubmissionByAssistantID(submissions, assistantID)
