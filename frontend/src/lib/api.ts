@@ -4,6 +4,7 @@ import {
   AvailabilitySubmissionItem,
   SchedulePlan,
   ScheduleTemplate,
+  SchedulingResult,
   User,
 } from "@/lib/types";
 
@@ -103,8 +104,12 @@ export const updateScheduleTemplate = (
 export const deleteScheduleTemplate = (id: number) =>
   api.delete<UnifiedResponse<null>>(`/schedule-templates/${id}`);
 
+// 与排班计划有关的 API
 export const getSchedulePlans = () =>
   api.get<UnifiedResponse<SchedulePlan[]>>("/schedule-plans");
+
+export const getSchedulePlan = (id: number) =>
+  api.get<UnifiedResponse<SchedulePlan>>(`/schedule-plans/${id}`);
 
 export const createSchedulePlan = (data: {
   name: string;
@@ -149,4 +154,14 @@ export const submitYourAvailability = (data: {
 export const getYourSubmission = (schedulePlanID: number) =>
   api.get<UnifiedResponse<AvailabilitySubmission | null>>(
     `/schedule-plans/${schedulePlanID}/your-submission`
+  );
+
+export const getAllSubmissions = (schedulePlanID: number) =>
+  api.get<UnifiedResponse<AvailabilitySubmission[]>>(
+    `/schedule-plans/${schedulePlanID}/submissions`
+  );
+
+export const getSchedulingResult = (schedulePlanID: number) =>
+  api.get<UnifiedResponse<SchedulingResult | null>>(
+    `/schedule-plans/${schedulePlanID}/scheduling-result`
   );

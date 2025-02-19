@@ -48,3 +48,21 @@ export type AvailabilitySubmission = {
   items: AvailabilitySubmissionItem[];
   createdAt: string;
 };
+
+export type SchedulingResultShiftItem = {
+  day: number;
+  principalID: number | null; // null 表示班次在当天没有负责人
+  assistantIDs: number[];
+};
+
+export type SchedulingResultShift = {
+  shiftID: number;
+  items: SchedulingResultShiftItem[];
+};
+
+export type SchedulingResult = {
+  id: number;
+  schedulePlanID: number;
+  shifts: SchedulingResultShift[];
+  createdAt: string;
+};

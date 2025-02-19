@@ -11,7 +11,7 @@ import useAddSchedulePlanDialogStore from "@/store/use-add-schedule-plan-dialog-
 import { useSuspenseQueries } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/_dashboard/management/schedule-plans")({
+export const Route = createFileRoute("/_dashboard/management/schedule-plans/")({
   loader: async ({ context }) =>
     await Promise.all([
       context.queryClient.ensureQueryData(getSchedulePlansQueryOptions()),

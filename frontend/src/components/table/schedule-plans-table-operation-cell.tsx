@@ -10,6 +10,7 @@ import {
 import { SchedulePlan } from "@/lib/types";
 import useDeleteSchedulePlanDialogStore from "@/store/use-delete-schedule-plan-dialog";
 import useEditSchedulePlanDialogStore from "@/store/use-edit-schedule-plan-dialog-store";
+import { useNavigate } from "@tanstack/react-router";
 import { MoreHorizontalIcon } from "lucide-react";
 
 interface Props {
@@ -28,6 +29,8 @@ export default function SchedulePlansTableOperationCell({
     setSchedulePlan: setDeleteSchedulePlanDialogSchedulePlan,
   } = useDeleteSchedulePlanDialogStore();
 
+  const navigate = useNavigate();
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -37,6 +40,18 @@ export default function SchedulePlansTableOperationCell({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>操作</DropdownMenuLabel>
+        <DropdownMenuItem
+          onClick={() => {
+            navigate({
+              to: "/management/schedule-plans/$id/scheduling",
+              params: {
+                id: schedulePlan.id.toString(),
+              },
+            });
+          }}
+        >
+          进行排班
+        </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => {
             setEditSchedulePlanDialogSchedulePlan(schedulePlan);
