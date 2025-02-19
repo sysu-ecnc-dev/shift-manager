@@ -90,7 +90,7 @@ func (r *Repository) GetSchedulingResultBySchedulePlanID(schedulePlanID int64) (
 			srs.schedule_template_shift_id,
 			srsi.day_of_week,
 			srsi.principal_id,
-			srsia.user_id,
+			srsia.assistant_id,
 			sr.created_at,
 			sr.version
 		FROM scheduling_results sr
