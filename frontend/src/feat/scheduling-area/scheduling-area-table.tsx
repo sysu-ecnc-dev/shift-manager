@@ -8,7 +8,7 @@ import { SchedulePlan } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import useSchedulingSubmissionStore from "@/store/use-scheduling-submission-store";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { HTMLAttributes } from "react";
+import { HTMLAttributes, useEffect } from "react";
 
 interface Props extends HTMLAttributes<HTMLDivElement> {
   schedulePlan: SchedulePlan;
@@ -29,7 +29,9 @@ export default function SchedulingAreaTable({
   const { schedulingSubmission, setSchedulingSubmission } =
     useSchedulingSubmissionStore();
 
-  setSchedulingSubmission(schedulingResult?.shifts ?? []);
+  useEffect(() => {
+    setSchedulingSubmission(schedulingResult?.shifts ?? []);
+  }, [schedulingResult, setSchedulingSubmission]);
 
   return (
     <div
