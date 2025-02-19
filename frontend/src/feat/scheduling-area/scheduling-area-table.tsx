@@ -4,10 +4,11 @@ import {
   getScheduleTemplateQueryOptions,
   getSchedulingResultQueryOptions,
 } from "@/lib/queryOptions";
-import { SchedulePlan, SchedulingResultShift } from "@/lib/types";
+import { SchedulePlan } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import useSchedulingSubmissionStore from "@/store/use-scheduling-submission-store";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { HTMLAttributes, useState } from "react";
+import { HTMLAttributes } from "react";
 
 interface Props extends HTMLAttributes<HTMLDivElement> {
   schedulePlan: SchedulePlan;
@@ -25,11 +26,10 @@ export default function SchedulingAreaTable({
     getSchedulingResultQueryOptions(schedulePlan.id)
   );
 
-  const [resultSubmission, setResultSubmission] = useState<
-    SchedulingResultShift[]
-  >(() => {
-    return schedulingResult?.shifts ?? [];
-  });
+  const { schedulingSubmission, setSchedulingSubmission } =
+    useSchedulingSubmissionStore();
+
+  setSchedulingSubmission(schedulingResult?.shifts ?? []);
 
   return (
     <div
@@ -48,7 +48,7 @@ export default function SchedulingAreaTable({
       </div>
       {/* 展示班次 */}
       {scheduleTemplate.shifts.map((scheduleTemplateShift) => {
-        const resultShift = resultSubmission.find(
+        const resultShift = schedulingSubmission.find(
           (shift) => shift.shiftID === scheduleTemplateShift.id
         );
 
