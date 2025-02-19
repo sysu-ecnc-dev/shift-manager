@@ -165,8 +165,8 @@ func (r *Repository) GetSchedulingResultBySchedulePlanID(schedulePlanID int64) (
 				PrincipalID:  nil,
 				AssistantIDs: make([]int64, 0),
 			}
-			if row.assistantID.Valid {
-				itemsMap[row.templateShiftID.Int64][row.dayOfWeek.Int32].PrincipalID = &row.assistantID.Int64
+			if row.principalID.Valid {
+				itemsMap[row.templateShiftID.Int64][row.dayOfWeek.Int32].PrincipalID = &row.principalID.Int64
 			}
 		}
 
