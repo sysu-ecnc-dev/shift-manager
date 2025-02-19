@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS scheduling_results (
     id BIGSERIAL PRIMARY KEY,
     schedule_plan_id INT NOT NULL REFERENCES schedule_plans(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ DEFAULT NULL,
     version INT NOT NULL DEFAULT 1
 );
 

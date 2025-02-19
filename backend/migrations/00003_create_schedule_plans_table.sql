@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS schedule_plans(
     active_end_time TIMESTAMPTZ NOT NULL,
     schedule_template_id BIGINT NOT NULL REFERENCES schedule_templates(id),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ DEFAULT NULL,
     version INT NOT NULL DEFAULT 1
 );
 -- +goose StatementEnd
