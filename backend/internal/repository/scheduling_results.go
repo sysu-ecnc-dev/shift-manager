@@ -162,8 +162,11 @@ func (r *Repository) GetSchedulingResultBySchedulePlanID(schedulePlanID int64) (
 		if _, exists := itemsMap[row.templateShiftID.Int64][row.dayOfWeek.Int32]; !exists {
 			itemsMap[row.templateShiftID.Int64][row.dayOfWeek.Int32] = &domain.SchedulingResultShiftItem{
 				Day:          row.dayOfWeek.Int32,
-				PrincipalID:  row.principalID.Int64,
+				PrincipalID:  nil,
 				AssistantIDs: make([]int64, 0),
+			}
+			if row.assistantID.Valid {
+				itemsMap[row.templateShiftID.Int64][row.dayOfWeek.Int32].PrincipalID = &row.assistantID.Int64
 			}
 		}
 

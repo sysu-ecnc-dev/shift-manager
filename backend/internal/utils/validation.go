@@ -140,9 +140,9 @@ func getSubmissionByAssistantID(submissions []*domain.AvailabilitySubmission, as
 func ValidateSchedulingResultWithSubmissions(result *domain.SchedulingResult, submissions []*domain.AvailabilitySubmission) error {
 	for i, shift := range result.Shifts {
 		for _, item := range shift.Items {
-			if item.PrincipalID != 0 {
+			if item.PrincipalID != nil {
 				// 找到这个负责人对应的提交
-				submission := getSubmissionByAssistantID(submissions, item.PrincipalID)
+				submission := getSubmissionByAssistantID(submissions, *item.PrincipalID)
 				if submission == nil {
 					return fmt.Errorf("班次 %d 的第 %d 天的 id 为 %d 的负责人没有提交空闲时间", i+1, item.Day, item.PrincipalID)
 				}

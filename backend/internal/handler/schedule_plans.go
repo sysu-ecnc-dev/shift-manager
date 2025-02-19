@@ -280,9 +280,7 @@ func (h *Handler) SubmitSchedulingResult(w http.ResponseWriter, r *http.Request)
 			schedulingResult.Shifts[i].Items[j] = domain.SchedulingResultShiftItem{
 				Day:          item.Day,
 				AssistantIDs: item.AssistantIDs,
-			}
-			if item.PrincipalID != nil {
-				schedulingResult.Shifts[i].Items[j].PrincipalID = *item.PrincipalID
+				PrincipalID:  item.PrincipalID,
 			}
 		}
 	}
