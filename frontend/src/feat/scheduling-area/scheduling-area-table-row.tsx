@@ -24,7 +24,10 @@ export default function SchedulingAreaTableRow({
 
         if (item === undefined) {
           return (
-            <div className="h-full flex items-center justify-center text-muted-foreground">
+            <div
+              className="h-full flex items-center justify-center text-muted-foreground"
+              key={day.key}
+            >
               不可排班
             </div>
           );

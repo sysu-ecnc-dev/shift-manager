@@ -29,6 +29,7 @@ export default function SchedulingAreaTableRowCell({
           day={resultShiftItem.day}
           schedulingResultShiftItem={resultShiftItem}
           index={index}
+          key={index}
         />
       ))}
     </div>
