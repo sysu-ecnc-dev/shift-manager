@@ -314,6 +314,12 @@ func (h *Handler) SubmitSchedulingResult(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	// 最后要坚持是否存在重复的助理
+	if err := utils.ValidIfExistsDuplicateAssistant(schedulingResult); err != nil {
+		h.badRequest(w, r, err)
+		return
+	}
+
 	h.successResponse(w, r, "提交排班结果成功", schedulingResult)
 }
 

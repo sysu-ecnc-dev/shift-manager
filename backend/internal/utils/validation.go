@@ -183,3 +183,24 @@ func ValidateSchedulingResultWithSubmissions(result *domain.SchedulingResult, su
 
 	return nil
 }
+
+func ValidIfExistsDuplicateAssistant(result *domain.SchedulingResult) error {
+	// 检查是否存在某个班次中的某一天有重复的助理
+	for i, resultShift := range result.Shifts {
+		for _, resultShiftItem := range resultShift.Items {
+			// 先检查负责人是不是存在于助理数组中
+			if resultShiftItem.PrincipalID != nil && slices.Contains(resultShiftItem.AssistantIDs, *resultShiftItem.PrincipalID) {
+				return fmt.Errorf("班次 %d 的第 %d 天中负责人和助理重复", i, resultShiftItem.Day)
+			}
+			// 检查助理之间是否有重复
+			seen := make(map[int64]bool)
+			for _, assistantID := range resultShiftItem.AssistantIDs {
+				if seen[assistantID] {
+					return fmt.Errorf("班次 %d 的第 %d 天中存在重复助理", i, resultShiftItem.Day)
+				}
+				seen[assistantID] = true
+			}
+		}
+	}
+	return nil
+}
