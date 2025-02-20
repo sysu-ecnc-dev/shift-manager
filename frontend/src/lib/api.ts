@@ -5,6 +5,7 @@ import {
   SchedulePlan,
   ScheduleTemplate,
   SchedulingResult,
+  SchedulingResultShift,
   User,
 } from "@/lib/types";
 
@@ -161,7 +162,17 @@ export const getAllSubmissions = (schedulePlanID: number) =>
     `/schedule-plans/${schedulePlanID}/submissions`
   );
 
+// 与排班有关的 API
 export const getSchedulingResult = (schedulePlanID: number) =>
   api.get<UnifiedResponse<SchedulingResult | null>>(
     `/schedule-plans/${schedulePlanID}/scheduling-result`
+  );
+
+export const submitSchedulingResult = (
+  schedulePlanID: number,
+  shifts: SchedulingResultShift[]
+) =>
+  api.post<UnifiedResponse<SchedulingResult>>(
+    `/schedule-plans/${schedulePlanID}/scheduling-result`,
+    shifts
   );
