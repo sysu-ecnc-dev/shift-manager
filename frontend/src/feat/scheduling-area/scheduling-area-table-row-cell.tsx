@@ -2,13 +2,16 @@ import { getUsersQueryOptions } from "@/lib/queryOptions";
 import { SchedulingResultShiftItem } from "@/lib/types";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { CrownIcon } from "lucide-react";
+import SchedulingAreaTableRowCellNeedAssistant from "@/feat/scheduling-area/scheduling-area-table-row-cell-need-assistant";
 
 interface Props {
+  shiftID: number;
   item: SchedulingResultShiftItem;
   requiredAssistantNumber: number;
 }
 
 export default function SchedulingAreaTableRowCell({
+  shiftID,
   item,
   requiredAssistantNumber,
 }: Props) {
@@ -40,14 +43,17 @@ export default function SchedulingAreaTableRowCell({
         })}
         {Array.from({
           length: requiredAssistantNumber - item.assistantIDs.length - 1, // 减去负责人
-        }).map((_, index) => (
-          <div
-            key={index}
-            className="text-muted-foreground border border-border border-dashed rounded-md py-1"
-          >
-            缺少助理
-          </div>
-        ))}
+        }).map((_, index) => {
+          return (
+            <SchedulingAreaTableRowCellNeedAssistant
+              key={index}
+              shiftID={shiftID}
+              day={item.day}
+              index={index}
+              item={item}
+            />
+          );
+        })}
       </div>
     </div>
   );

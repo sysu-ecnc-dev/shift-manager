@@ -33,6 +33,7 @@ export default function SchedulingAreaTableRow({
         return (
           <SchedulingAreaTableRowCell
             key={day.key}
+            shiftID={templateShift.id}
             item={item}
             requiredAssistantNumber={templateShift.requiredAssistantNumber}
           />
