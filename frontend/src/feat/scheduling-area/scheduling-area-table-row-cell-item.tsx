@@ -29,6 +29,12 @@ export default function SchedulingAreaTableRowCellItem({
     id: isPrincipal
       ? `principal-${shiftID}-${day}`
       : `assistant-${shiftID}-${day}-${index}`,
+    data: {
+      shiftID,
+      day,
+      isPrincipal,
+      index,
+    },
   });
 
   const { data: users } = useSuspenseQuery(getUsersQueryOptions());
