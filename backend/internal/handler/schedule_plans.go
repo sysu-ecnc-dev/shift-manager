@@ -395,8 +395,17 @@ func (h *Handler) GenerateSchedulingResult(w http.ResponseWriter, r *http.Reques
 	}
 
 	// 自动排班
-	scheduler := scheduler.New(parameters, users, template, submissions)
-	res := scheduler.Schedule()
+	scheduler, err := scheduler.New(parameters, users, template, submissions)
+	if err != nil {
+		h.internalServerError(w, r, err)
+		return
+	}
+
+	res, err := scheduler.Schedule()
+	if err != nil {
+		h.internalServerError(w, r, err)
+		return
+	}
 
 	h.successResponse(w, r, "自动排班成功", res)
 }

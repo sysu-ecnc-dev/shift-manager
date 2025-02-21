@@ -1,6 +1,7 @@
 package scheduler
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 	"sort"
@@ -10,15 +11,15 @@ import (
 
 type Scheduler struct {
 	parameters   *Parameters
-	users        []*domain.User
+	users        []*domain.User // 注意这个不是所有的 users，而应该是提交了空闲时间的助理
 	shifts       []*domain.ScheduleTemplateShift
 	availableMap map[int64]map[int32][]int64 // {shiftID: {day: [userID1, userID2, ...]}}
 }
 
-func New(parameters *Parameters, users []*domain.User, template *domain.ScheduleTemplate, availableSubmissions []*domain.AvailabilitySubmission) *Scheduler {
+func New(parameters *Parameters, users []*domain.User, template *domain.ScheduleTemplate, availableSubmissions []*domain.AvailabilitySubmission) (*Scheduler, error) {
 	s := &Scheduler{
 		parameters: parameters,
-		users:      users,
+		users:      make([]*domain.User, 0),
 		shifts:     make([]*domain.ScheduleTemplateShift, 0),
 	}
 
@@ -46,12 +47,26 @@ func New(parameters *Parameters, users []*domain.User, template *domain.Schedule
 				s.availableMap[shiftID][day] = append(s.availableMap[shiftID][day], userID)
 			}
 		}
+
+		var user *domain.User = nil
+		for _, u := range users {
+			if u.ID == userID {
+				user = u
+				break
+			}
+		}
+
+		if user == nil {
+			return nil, fmt.Errorf("用户 %d 不在传入的 users 数组中", userID)
+		}
+
+		s.users = append(s.users, user)
 	}
 
-	return s
+	return s, nil
 }
 
-func (s *Scheduler) Schedule() []*domain.SchedulingResultShift {
+func (s *Scheduler) Schedule() ([]*domain.SchedulingResultShift, error) {
 	// 生成初始种群
 	pop := make([]*Chromosome, s.parameters.PopulationSize)
 	for i := 0; i < int(s.parameters.PopulationSize); i++ {
@@ -150,5 +165,5 @@ func (s *Scheduler) Schedule() []*domain.SchedulingResultShift {
 		})
 	}
 
-	return result
+	return result, nil
 }
