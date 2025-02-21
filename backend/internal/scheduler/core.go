@@ -170,7 +170,7 @@ func (s *Scheduler) singlePointCrossover(ch1 *Chromosome, ch2 *Chromosome) {
 // 随机选择新的负责人或助理
 func (s *Scheduler) mutate(ch *Chromosome) {
 	for i := range ch.genes {
-		// 选择新的负责人
+		// 一定概率选择选择新的负责人
 		if rand.Float64() > s.parameters.MutationRate {
 			continue
 		}
@@ -179,9 +179,11 @@ func (s *Scheduler) mutate(ch *Chromosome) {
 		for _, user := range s.users {
 			if isSeniorOrBlackCore(user) && slices.Contains(s.availableMap[ch.genes[i].shiftID][ch.genes[i].day], user.ID) {
 				if ch.genes[i].principalID != nil && *ch.genes[i].principalID == user.ID {
+					// 如果这个用户已经是负责人，那么就不要把他放入候选中了
 					continue
 				}
 				if slices.Contains(ch.genes[i].assistantIDs, user.ID) {
+					// 如果这个用户已经被选到这个班次中当助理了，那么就不要把它放入候选了
 					continue
 				}
 
@@ -193,8 +195,9 @@ func (s *Scheduler) mutate(ch *Chromosome) {
 			ch.genes[i].principalID = &principalCandidatesIDs[rand.Intn(len(principalCandidatesIDs))]
 		}
 
-		// 选择新的助理
+		// 一定概率选择新的助理
 		for j := range ch.genes[i].assistantIDs {
+			// 每个助理都有一定概率被替换
 			if rand.Float64() > s.parameters.MutationRate {
 				continue
 			}
@@ -202,14 +205,18 @@ func (s *Scheduler) mutate(ch *Chromosome) {
 			var assistantCandidatesIDs []int64 = []int64{}
 
 			for _, user := range s.users {
-				if ch.genes[i].principalID != nil && *ch.genes[i].principalID == user.ID {
-					continue
-				}
-				if slices.Contains(ch.genes[i].assistantIDs, user.ID) {
-					continue
-				}
+				if slices.Contains(s.availableMap[ch.genes[i].shiftID][ch.genes[i].day], user.ID) {
+					if ch.genes[i].principalID != nil && *ch.genes[i].principalID == user.ID {
+						// 如果这个用户是负责人，那么就不要把他放入候选中了
+						continue
+					}
+					if slices.Contains(ch.genes[i].assistantIDs, user.ID) {
+						// 如果这个用户已经被选到这个班次中当助理了，那么就不要把它放入候选了
+						continue
+					}
 
-				assistantCandidatesIDs = append(assistantCandidatesIDs, user.ID)
+					assistantCandidatesIDs = append(assistantCandidatesIDs, user.ID)
+				}
 			}
 
 			if len(assistantCandidatesIDs) > 0 {

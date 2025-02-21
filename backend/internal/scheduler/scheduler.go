@@ -7,27 +7,29 @@ import (
 	"sort"
 
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/domain"
+	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/utils"
 )
 
 type Scheduler struct {
 	parameters   *Parameters
 	users        []*domain.User // 注意这个不是所有的 users，而应该是提交了空闲时间的助理
 	shifts       []*domain.ScheduleTemplateShift
-	availableMap map[int64]map[int32][]int64 // {shiftID: {day: [userID1, userID2, ...]}}
+	submissions  []*domain.AvailabilitySubmission // 仅做最后的校验使用
+	availableMap map[int64]map[int32][]int64      // {shiftID: {day: [userID1, userID2, ...]}}
 }
 
 func New(parameters *Parameters, users []*domain.User, template *domain.ScheduleTemplate, availableSubmissions []*domain.AvailabilitySubmission) (*Scheduler, error) {
 	s := &Scheduler{
-		parameters: parameters,
-		users:      make([]*domain.User, 0),
-		shifts:     make([]*domain.ScheduleTemplateShift, 0),
+		parameters:   parameters,
+		users:        make([]*domain.User, 0),
+		shifts:       make([]*domain.ScheduleTemplateShift, 0),
+		submissions:  availableSubmissions,
+		availableMap: make(map[int64]map[int32][]int64),
 	}
 
 	for _, shift := range template.Shifts {
 		s.shifts = append(s.shifts, &shift)
 	}
-
-	s.availableMap = make(map[int64]map[int32][]int64)
 
 	for _, submission := range availableSubmissions {
 		userID := submission.UserID
@@ -163,6 +165,21 @@ func (s *Scheduler) Schedule() ([]*domain.SchedulingResultShift, error) {
 			ShiftID: shiftID,
 			Items:   items,
 		})
+	}
+
+	// 还需要检查一下结果是否满足约束条件（调用 validate 包中的方法就可以了）
+	schedulingResult := &domain.SchedulingResult{
+		Shifts: make([]domain.SchedulingResultShift, len(result)),
+	}
+	for i, shift := range result {
+		schedulingResult.Shifts[i] = *shift
+	}
+
+	if err := utils.ValidateSchedulingResultWithSubmissions(schedulingResult, s.submissions); err != nil {
+		return nil, err
+	}
+	if err := utils.ValidIfExistsDuplicateAssistant(schedulingResult); err != nil {
+		return nil, err
 	}
 
 	return result, nil

@@ -310,14 +310,14 @@ func (h *Handler) SubmitSchedulingResult(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if err := h.repository.InsertSchedulingResult(schedulingResult); err != nil {
-		h.internalServerError(w, r, err)
+	// 最后要检查是否存在重复的助理
+	if err := utils.ValidIfExistsDuplicateAssistant(schedulingResult); err != nil {
+		h.badRequest(w, r, err)
 		return
 	}
 
-	// 最后要坚持是否存在重复的助理
-	if err := utils.ValidIfExistsDuplicateAssistant(schedulingResult); err != nil {
-		h.badRequest(w, r, err)
+	if err := h.repository.InsertSchedulingResult(schedulingResult); err != nil {
+		h.internalServerError(w, r, err)
 		return
 	}
 
