@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"runtime/debug"
 	"slices"
 	"strconv"
 	"time"
@@ -41,6 +42,8 @@ func (h *Handler) recoverer(next http.Handler) http.Handler {
 		defer func() {
 			if err := recover(); err != nil {
 				h.internalServerError(w, r, fmt.Errorf("panic: %v", err))
+				stackTrace := string(debug.Stack())
+				fmt.Print(stackTrace) // 这里如果用 slog 的话会很乱
 			}
 		}()
 		next.ServeHTTP(w, r)
