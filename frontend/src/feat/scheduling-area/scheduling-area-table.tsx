@@ -49,23 +49,25 @@ export default function SchedulingAreaTable({
         ))}
       </div>
       {/* 展示班次 */}
-      {scheduleTemplate.shifts.map((scheduleTemplateShift) => {
-        const resultShift = schedulingSubmission.find(
-          (shift) => shift.shiftID === scheduleTemplateShift.id
-        );
+      {scheduleTemplate.shifts
+        .sort((a, b) => (a.startTime > b.startTime ? 1 : -1))
+        .map((scheduleTemplateShift) => {
+          const resultShift = schedulingSubmission.find(
+            (shift) => shift.shiftID === scheduleTemplateShift.id
+          );
 
-        if (resultShift === undefined) {
-          return null;
-        }
+          if (resultShift === undefined) {
+            return null;
+          }
 
-        return (
-          <SchedulingAreaTableRow
-            key={scheduleTemplateShift.id}
-            templateShift={scheduleTemplateShift}
-            resultShift={resultShift}
-          />
-        );
-      })}
+          return (
+            <SchedulingAreaTableRow
+              key={scheduleTemplateShift.id}
+              templateShift={scheduleTemplateShift}
+              resultShift={resultShift}
+            />
+          );
+        })}
     </div>
   );
 }
