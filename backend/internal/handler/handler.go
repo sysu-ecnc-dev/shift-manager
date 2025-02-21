@@ -115,6 +115,7 @@ func (h *Handler) RegisterRoutes() {
 					r.Use(h.RequiredRole([]domain.Role{domain.RoleBlackCore}))
 					r.Post("/", h.SubmitSchedulingResult)
 					r.Get("/", h.GetSchedulingResult)
+					r.Post("/generate", h.GenerateSchedulingResult)
 				})
 			})
 		})

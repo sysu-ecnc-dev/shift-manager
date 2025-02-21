@@ -15,11 +15,15 @@ type Scheduler struct {
 	availableMap map[int64]map[int32][]int64 // {shiftID: {day: [userID1, userID2, ...]}}
 }
 
-func New(parameters *Parameters, users []*domain.User, shifts []*domain.ScheduleTemplateShift, availableSubmissions []*domain.AvailabilitySubmission) *Scheduler {
+func New(parameters *Parameters, users []*domain.User, template *domain.ScheduleTemplate, availableSubmissions []*domain.AvailabilitySubmission) *Scheduler {
 	s := &Scheduler{
 		parameters: parameters,
 		users:      users,
-		shifts:     shifts,
+		shifts:     make([]*domain.ScheduleTemplateShift, 0),
+	}
+
+	for _, shift := range template.Shifts {
+		s.shifts = append(s.shifts, &shift)
 	}
 
 	s.availableMap = make(map[int64]map[int32][]int64)

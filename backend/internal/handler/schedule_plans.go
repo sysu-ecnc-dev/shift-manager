@@ -8,6 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/domain"
+	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/scheduler"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/utils"
 )
 
@@ -338,4 +339,64 @@ func (h *Handler) GetSchedulingResult(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.successResponse(w, r, "获取排班结果成功", schedulingResult)
+}
+
+func (h *Handler) GenerateSchedulingResult(w http.ResponseWriter, r *http.Request) {
+	plan := r.Context().Value(SchedulePlanCtx).(*domain.SchedulePlan)
+
+	// 获取参数
+	var req struct {
+		PopulationSize int32   `json:"populationSize" validate:"required,min=1"`
+		MaxGenerations int32   `json:"maxGenerations" validate:"required,min=1"`
+		CrossoverRate  float64 `json:"crossoverRate" validate:"required,min=0,max=1"`
+		MutationRate   float64 `json:"mutationRate" validate:"required,min=0,max=1"`
+		EliteCount     int32   `json:"eliteCount" validate:"required,min=0"`
+		FairnessWeight float64 `json:"fairnessWeight" validate:"required,min=0"`
+	}
+
+	if err := h.readJSON(r, &req); err != nil {
+		h.badRequest(w, r, err)
+		return
+	}
+	if err := h.validate.Struct(req); err != nil {
+		h.badRequest(w, r, err)
+		return
+	}
+
+	// 构建参数
+	parameters := &scheduler.Parameters{
+		PopulationSize: req.PopulationSize,
+		MaxGenerations: req.MaxGenerations,
+		CrossoverRate:  req.CrossoverRate,
+		MutationRate:   req.MutationRate,
+		EliteCount:     req.EliteCount,
+		FairnessWeight: req.FairnessWeight,
+	}
+
+	// 获取排班计划所用的模板
+	template, err := h.repository.GetScheduleTemplate(plan.ScheduleTemplateID)
+	if err != nil {
+		h.internalServerError(w, r, err)
+		return
+	}
+
+	// 获取排班计划的提交记录
+	submissions, err := h.repository.GetAllSubmissionsBySchedulePlanID(plan.ID)
+	if err != nil {
+		h.internalServerError(w, r, err)
+		return
+	}
+
+	// 获取排班计划所用的用户
+	users, err := h.repository.GetAllUsers()
+	if err != nil {
+		h.internalServerError(w, r, err)
+		return
+	}
+
+	// 自动排班
+	scheduler := scheduler.New(parameters, users, template, submissions)
+	res := scheduler.Schedule()
+
+	h.successResponse(w, r, "自动排班成功", res)
 }
