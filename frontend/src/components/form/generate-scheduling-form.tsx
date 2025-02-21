@@ -48,10 +48,10 @@ export default function GenerateSchedulingForm() {
     defaultValues: {
       populationSize: 50,
       maxGenerations: 100,
-      crossoverRate: 0.7,
-      mutationRate: 0.1,
+      crossoverRate: 0.9,
+      mutationRate: 0.3,
       EliteCount: 10,
-      FairnessWeight: 0.5,
+      FairnessWeight: 5,
     },
   });
 

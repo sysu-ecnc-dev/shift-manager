@@ -75,7 +75,7 @@ export default function SchedulingAreaTableRowCellItem({
       ref={setNodeRef}
       className={cn(
         "border-2 border-border rounded-md flex items-center justify-center py-2",
-        isAllowed && "bg-secondary",
+        isAllowed && "bg-chart-2",
         isOver && isAllowed && "bg-primary"
       )}
     >
@@ -90,7 +90,7 @@ export default function SchedulingAreaTableRowCellItem({
                 )?.fullName
               }
             </span>
-            <span>
+            <span className="select-none">
               (
               {calculateAssignedHours(
                 schedulingResultShiftItem.principalID,
@@ -115,7 +115,7 @@ export default function SchedulingAreaTableRowCellItem({
               )?.fullName
             }
           </span>
-          <span>
+          <span className="select-none">
             (
             {calculateAssignedHours(
               schedulingResultShiftItem.assistantIDs.at(index) ?? 0,

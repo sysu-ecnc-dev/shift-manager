@@ -184,5 +184,8 @@ export const generateSchedulingResult = (
 ) =>
   api.post<UnifiedResponse<SchedulingResultShift[]>>(
     `/schedule-plans/${schedulePlanID}/scheduling-result/generate`,
-    data
+    data,
+    {
+      timeout: 100000,
+    }
   );

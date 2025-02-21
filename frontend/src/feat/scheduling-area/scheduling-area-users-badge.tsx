@@ -15,9 +15,9 @@ export default function SchedulingAreaUserBadge({
   assignedHours,
   submission,
 }: Props) {
-  const { setNodeRef, transform, listeners, attributes } = useDraggable({
+  const { setNodeRef, listeners, attributes } = useDraggable({
     id: user.id,
-    data: { submission, user },
+    data: { submission, user, assignedHours },
   });
   const roleIcons = {
     普通助理: <IconArrowBadgeDown size={20} />,
@@ -25,21 +25,15 @@ export default function SchedulingAreaUserBadge({
     黑心: <IconMilitaryRank size={20} />,
   };
 
-  const style = transform
-    ? {
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-      }
-    : undefined;
-
   return (
     <div
       ref={setNodeRef}
-      style={style}
+      // style={style}
       className="cursor-grab"
       {...listeners}
       {...attributes}
     >
-      <Badge className="flex items-center  gap-1 text-md">
+      <Badge className="flex items-center gap-1 text-md">
         {roleIcons[user.role]}
         <span>{user.fullName}</span>
         <span>({assignedHours})</span>

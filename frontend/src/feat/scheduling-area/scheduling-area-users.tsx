@@ -70,17 +70,12 @@ export default function SchedulingAreaUsers({
 
   return (
     <div
-      className={cn(
-        className,
-        "border-2 border-border rounded-md mt-2 p-2",
-        "max-h-[calc(100vh-200px)] overflow-y-auto sticky top-2",
-        "scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar scrollbar-thumb-secondary-foreground scrollbar-track-secondary"
-      )}
+      className={cn(className, "border-2 border-border rounded-md mt-2 p-2")}
     >
       {/* 排班基本情况 */}
       <div className="flex items-center gap-2 text-lg mb-2">
         <Label>工作时间方差:</Label>
-        <span className="font-medium">{calculateHoursVariance()}</span>
+        <span>{calculateHoursVariance()}</span>
       </div>
       {/* 排班助理列表 */}
       <div className="grid gap-4">

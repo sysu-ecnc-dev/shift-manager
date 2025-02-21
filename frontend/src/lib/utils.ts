@@ -12,31 +12,37 @@ export const calculateAssignedHours = (
   schedulingSubmission: SchedulingResultShift[],
   scheduleTemplate: ScheduleTemplate
 ) => {
-  return schedulingSubmission
-    .filter((submissionShift) =>
-      submissionShift.items.some(
+  let result = 0;
+
+  for (const resultShift of schedulingSubmission) {
+    if (
+      !resultShift.items.some(
         (item) =>
           item.principalID === userID || item.assistantIDs.includes(userID)
       )
-    )
-    .reduce((acc, shift) => {
-      const shiftTemplate = scheduleTemplate.shifts.find(
-        (shiftTemplate) => shiftTemplate.id === shift.shiftID
-      );
+    ) {
+      continue;
+    }
 
-      if (shiftTemplate !== undefined) {
-        return Number(
-          (
-            acc +
-            differenceInSeconds(
-              parse(shiftTemplate.endTime, "HH:mm:ss", new Date()),
-              parse(shiftTemplate.startTime, "HH:mm:ss", new Date())
-            ) /
-              3600
-          ).toFixed(2)
-        );
-      }
+    const shiftTemplate = scheduleTemplate.shifts.find(
+      (shift) => shift.id === resultShift.shiftID
+    );
+    if (!shiftTemplate) {
+      continue;
+    }
 
-      return acc;
-    }, 0);
+    const startTime = parse(shiftTemplate.startTime, "HH:mm:ss", new Date());
+    const endTime = parse(shiftTemplate.endTime, "HH:mm:ss", new Date());
+
+    const assignedHours = differenceInSeconds(endTime, startTime) / 3600;
+
+    result +=
+      assignedHours *
+      resultShift.items.filter(
+        (item) =>
+          item.principalID === userID || item.assistantIDs.includes(userID)
+      ).length;
+  }
+
+  return Number(result.toFixed(1));
 };

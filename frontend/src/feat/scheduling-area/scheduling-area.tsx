@@ -1,8 +1,10 @@
 import SchedulingAreaTable from "@/feat/scheduling-area/scheduling-area-table";
 import SchedulingAreaUsers from "@/feat/scheduling-area/scheduling-area-users";
 import { SchedulePlan, User } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import useSchedulingSubmissionStore from "@/store/use-scheduling-submission-store";
 import { DndContext, DragEndEvent } from "@dnd-kit/core";
+import SchedulingAreaDragOverlay from "@/feat/scheduling-area/scheduling-area-drag-overlay";
 
 interface Props {
   schedulePlan: SchedulePlan;
@@ -72,11 +74,18 @@ export default function SchedulingArea({ schedulePlan }: Props) {
         {/* 排班表 */}
         <SchedulingAreaTable
           schedulePlan={schedulePlan}
-          className="flex-1 self-start text-md"
+          className="flex-1 self-start"
         />
         {/* 助理列表 */}
-        <SchedulingAreaUsers schedulePlan={schedulePlan} className="text-md" />
+        <SchedulingAreaUsers
+          schedulePlan={schedulePlan}
+          className={cn(
+            "overflow-y-auto max-h-screen top-2 bottom-2 sticky",
+            "scrollbar scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-thumb-secondary-foreground scrollbar-track-secondary"
+          )}
+        />
       </div>
+      <SchedulingAreaDragOverlay />
     </DndContext>
   );
 }
