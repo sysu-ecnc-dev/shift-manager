@@ -66,3 +66,12 @@ export type SchedulingResult = {
   shifts: SchedulingResultShift[];
   createdAt: string;
 };
+
+export type SchedulingParameters = {
+  populationSize: number;
+  maxGenerations: number;
+  crossoverRate: number;
+  mutationRate: number;
+  EliteCount: number;
+  FairnessWeight: number;
+};

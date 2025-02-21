@@ -4,6 +4,7 @@ import {
   AvailabilitySubmissionItem,
   SchedulePlan,
   ScheduleTemplate,
+  SchedulingParameters,
   SchedulingResult,
   SchedulingResultShift,
   User,
@@ -175,4 +176,13 @@ export const submitSchedulingResult = (
   api.post<UnifiedResponse<SchedulingResult>>(
     `/schedule-plans/${schedulePlanID}/scheduling-result`,
     shifts
+  );
+
+export const generateSchedulingResult = (
+  schedulePlanID: number,
+  data: SchedulingParameters
+) =>
+  api.post<UnifiedResponse<SchedulingResultShift[]>>(
+    `/schedule-plans/${schedulePlanID}/scheduling-result/generate`,
+    data
   );
