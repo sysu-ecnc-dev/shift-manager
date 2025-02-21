@@ -194,7 +194,7 @@ func (s *Scheduler) mutate(ch *Chromosome) {
 		}
 
 		// 选择新的助理
-		for i := range ch.genes[i].assistantIDs {
+		for j := range ch.genes[i].assistantIDs {
 			if rand.Float64() > s.parameters.MutationRate {
 				continue
 			}
@@ -213,7 +213,7 @@ func (s *Scheduler) mutate(ch *Chromosome) {
 			}
 
 			if len(assistantCandidatesIDs) > 0 {
-				ch.genes[i].assistantIDs[i] = assistantCandidatesIDs[rand.Intn(len(assistantCandidatesIDs))]
+				ch.genes[i].assistantIDs[j] = assistantCandidatesIDs[rand.Intn(len(assistantCandidatesIDs))]
 			}
 		}
 	}
