@@ -51,6 +51,7 @@ export default function ShowScheduleTemplateDetailsDialog() {
                 ) ? (
                   <div className="grid gap-2">
                     {scheduleTemplate.shifts
+                      .sort((a, b) => (a.startTime > b.startTime ? 1 : -1))
                       .filter((shift) => shift.applicableDays.includes(day.key))
                       .map((s) => (
                         <div
