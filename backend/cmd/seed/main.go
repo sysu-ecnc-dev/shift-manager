@@ -12,6 +12,7 @@ import (
 
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/config"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/repository"
+	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/seed"
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/utils"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -22,7 +23,7 @@ func main() {
 	var n int
 	var schedulePlanID int64
 
-	flag.IntVar(&op, "op", 0, "要执行的操作 (1: 插入随机用户, 2: 插入随机班表模板, 3: 插入随机排班计划, 4: 插入提交记录)")
+	flag.IntVar(&op, "op", 0, "要执行的操作 (1: 插入随机用户, 2: 插入随机班表模板, 3: 插入随机排班计划, 4: 插入提交记录, 5: 插入真实数据)")
 	flag.IntVar(&n, "n", 5, "要插入的记录数量")
 	flag.Int64Var(&schedulePlanID, "schedule-plan-id", 0, "随机插入提交记录的排班计划 ID")
 	flag.Parse()
@@ -175,6 +176,8 @@ func main() {
 		}
 
 		slog.Info("插入提交记录成功", slog.Int("count", cnt))
+	case 5:
+		seed.SeedRealData(repo)
 	default:
 		slog.Error("指定的操作非法")
 	}

@@ -37,6 +37,10 @@ seed-schedule-plans:
 seed-submissions:
 	go run cmd/seed/main.go -op 4 -schedule-plan-id $(filter-out $@,$(MAKECMDGOALS))
 
+.PHONY: seed-real-data
+seed-real-data:
+	go run cmd/seed/main.go -op 5
+
 # 避免 make 误报 "No rule to make target"
 %:
 	@:
