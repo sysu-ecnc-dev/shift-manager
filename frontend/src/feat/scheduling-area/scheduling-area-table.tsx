@@ -29,9 +29,23 @@ export default function SchedulingAreaTable({
   const { schedulingSubmission, setSchedulingSubmission } =
     useSchedulingSubmissionStore();
 
+  // 这里必须要使用 useEffect, 否则会触发无限的重渲染
   useEffect(() => {
-    setSchedulingSubmission(schedulingResult?.shifts ?? []);
-  }, [schedulingResult, setSchedulingSubmission]);
+    if (schedulingResult) {
+      setSchedulingSubmission(schedulingResult.shifts);
+    } else {
+      setSchedulingSubmission(
+        scheduleTemplate.shifts.map((shift) => ({
+          shiftID: shift.id,
+          items: shift.applicableDays.map((day) => ({
+            day,
+            principalID: null,
+            assistantIDs: [],
+          })),
+        }))
+      );
+    }
+  }, [scheduleTemplate.shifts, schedulingResult, setSchedulingSubmission]);
 
   return (
     <div
