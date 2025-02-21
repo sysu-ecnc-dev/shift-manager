@@ -105,7 +105,7 @@ function RouteComponent() {
             >
               {submitMutation.isPending ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2" />
+                  <Loader2 className=" animate-spin" />
                   提交中...
                 </>
               ) : (
