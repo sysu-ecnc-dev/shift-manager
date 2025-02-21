@@ -79,6 +79,7 @@ export default function SchedulingAreaTable({
               key={scheduleTemplateShift.id}
               templateShift={scheduleTemplateShift}
               resultShift={resultShift}
+              schedulePlan={schedulePlan}
             />
           );
         })}

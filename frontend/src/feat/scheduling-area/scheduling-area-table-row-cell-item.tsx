@@ -1,11 +1,16 @@
 import { Badge } from "@/components/ui/badge";
-import { getUsersQueryOptions } from "@/lib/queryOptions";
+import {
+  getScheduleTemplateQueryOptions,
+  getUsersQueryOptions,
+} from "@/lib/queryOptions";
 import {
   AvailabilitySubmission,
+  SchedulePlan,
   SchedulingResultShiftItem,
   User,
 } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { calculateAssignedHours, cn } from "@/lib/utils";
+import useSchedulingSubmissionStore from "@/store/use-scheduling-submission-store";
 import { useDroppable } from "@dnd-kit/core";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { CrownIcon, UserIcon } from "lucide-react";
@@ -16,6 +21,7 @@ interface Props {
   day: number;
   index?: number;
   schedulingResultShiftItem: SchedulingResultShiftItem;
+  schedulePlan: SchedulePlan;
 }
 
 export default function SchedulingAreaTableRowCellItem({
@@ -24,6 +30,7 @@ export default function SchedulingAreaTableRowCellItem({
   day,
   index,
   schedulingResultShiftItem,
+  schedulePlan,
 }: Props) {
   const { setNodeRef, active, isOver } = useDroppable({
     id: isPrincipal
@@ -38,6 +45,11 @@ export default function SchedulingAreaTableRowCellItem({
   });
 
   const { data: users } = useSuspenseQuery(getUsersQueryOptions());
+
+  const { data: scheduleTemplate } = useSuspenseQuery(
+    getScheduleTemplateQueryOptions(schedulePlan.scheduleTemplateID)
+  );
+  const { schedulingSubmission } = useSchedulingSubmissionStore();
 
   const activeSubmission = active?.data?.current?.submission as
     | AvailabilitySubmission
@@ -71,12 +83,21 @@ export default function SchedulingAreaTableRowCellItem({
         schedulingResultShiftItem.principalID !== null ? (
           <Badge className="flex items-center gap-1 text-md">
             <CrownIcon className="w-4 h-4" />
-            <span>
+            <span className="whitespace-nowrap">
               {
                 users.find(
                   (user) => user.id === schedulingResultShiftItem.principalID
                 )?.fullName
               }
+            </span>
+            <span>
+              (
+              {calculateAssignedHours(
+                schedulingResultShiftItem.principalID,
+                schedulingSubmission,
+                scheduleTemplate
+              )}
+              )
             </span>
           </Badge>
         ) : (
@@ -86,13 +107,22 @@ export default function SchedulingAreaTableRowCellItem({
         schedulingResultShiftItem.assistantIDs.at(index) !== undefined ? (
         <Badge className="text-md flex items-center gap-1">
           <UserIcon className="w-4 h-4" />
-          <span>
+          <span className="whitespace-nowrap">
             {
               users.find(
                 (user) =>
                   user.id === schedulingResultShiftItem.assistantIDs.at(index)
               )?.fullName
             }
+          </span>
+          <span>
+            (
+            {calculateAssignedHours(
+              schedulingResultShiftItem.assistantIDs.at(index) ?? 0,
+              schedulingSubmission,
+              scheduleTemplate
+            )}
+            )
           </span>
         </Badge>
       ) : (

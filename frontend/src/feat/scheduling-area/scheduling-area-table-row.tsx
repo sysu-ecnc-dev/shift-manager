@@ -1,15 +1,21 @@
 import { DayOfWeek } from "@/lib/const";
-import { ScheduleTemplateShift, SchedulingResultShift } from "@/lib/types";
+import {
+  SchedulePlan,
+  ScheduleTemplateShift,
+  SchedulingResultShift,
+} from "@/lib/types";
 import SchedulingAreaTableRowCell from "@/feat/scheduling-area/scheduling-area-table-row-cell";
 
 interface Props {
   templateShift: ScheduleTemplateShift;
   resultShift: SchedulingResultShift;
+  schedulePlan: SchedulePlan;
 }
 
 export default function SchedulingAreaTableRow({
   templateShift,
   resultShift,
+  schedulePlan,
 }: Props) {
   return (
     <div className="grid grid-cols-8 divide-x divide-border">
@@ -39,6 +45,7 @@ export default function SchedulingAreaTableRow({
             shiftID={templateShift.id}
             resultShiftItem={item}
             requiredAssistantNumber={templateShift.requiredAssistantNumber}
+            schedulePlan={schedulePlan}
           />
         );
       })}
