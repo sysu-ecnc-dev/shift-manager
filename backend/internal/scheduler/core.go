@@ -41,7 +41,7 @@ func (s *Scheduler) randomInitChromosome() *Chromosome {
 			}
 
 			// 随机选择助理
-			chosenNum := min(int(shift.RequiredAssistantNumber), len(assistantCandidatesIDs))
+			chosenNum := min(int(shift.RequiredAssistantNumber-1), len(assistantCandidatesIDs))
 			// 打乱助理候选顺序
 			rand.Shuffle(len(assistantCandidatesIDs), func(i, j int) {
 				assistantCandidatesIDs[i], assistantCandidatesIDs[j] = assistantCandidatesIDs[j], assistantCandidatesIDs[i]
@@ -72,24 +72,18 @@ func (s *Scheduler) randomInitChromosome() *Chromosome {
 
 /**
  * 计算染色体的适应度
- * fitness = coverageScore - FairnessWeight * fairnessPenalty
+ * fitness = - notWorkPenalty - FairnessWeight * fairnessPenalty
  * 其中:
- * 		1. coverageScore 为覆盖率（用于确保每一个 (shift, day) 都尽可能排满）
+ * 		1. notWorkPenalty 为未工作惩罚（用于确保每个用户都尽可能工作）
  * 		2. fairnessPenalty 为公平性惩罚（用于确保每个用户的工作量尽可能均衡）
  * 		3. FairnessWeight 为公平性权重，用于平衡覆盖率和公平性（由输入参数决定）
  */
 func (s *Scheduler) calcFitness(ch *Chromosome) {
-	// 计算 coverageScore
-	coverageScore := 0
 
 	// 计算每个助理的工作时长
 	userWorkCnt := make(map[int64]float64)
 
 	for _, gene := range ch.genes {
-		if gene.principalID != nil && len(gene.assistantIDs) == int(gene.requiredNum) {
-			coverageScore += 1
-		}
-
 		// 计算每个助理的工作时长
 		if gene.principalID != nil {
 			if _, exists := userWorkCnt[*gene.principalID]; !exists {
@@ -102,6 +96,14 @@ func (s *Scheduler) calcFitness(ch *Chromosome) {
 				userWorkCnt[assistantID] = 0
 			}
 			userWorkCnt[assistantID] += gene.workDuration
+		}
+	}
+
+	// 计算 notWorkPenalty
+	notWorkPenalty := 0.0
+	for _, workCnt := range userWorkCnt {
+		if workCnt == 0 {
+			notWorkPenalty += 1
 		}
 	}
 
@@ -120,7 +122,7 @@ func (s *Scheduler) calcFitness(ch *Chromosome) {
 	variance /= float64(len(userWorkCnt))
 
 	// 计算 fitness 并赋值给染色体
-	fitness := float64(coverageScore) - s.parameters.FairnessWeight*variance
+	fitness := -notWorkPenalty - s.parameters.FairnessWeight*variance
 	ch.fitness = fitness
 }
 

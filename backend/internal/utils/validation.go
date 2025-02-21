@@ -97,11 +97,8 @@ func ValidateSchedulingResultWithTemplate(result *domain.SchedulingResult, templ
 		return errors.New("排班结果中的班次数量和模板中的班次数量不匹配")
 	}
 
-	for i, resultShift := range result.Shifts {
-		if len(resultShift.Items) != len(template.Shifts[i].ApplicableDays) {
-			return fmt.Errorf("排班结果中的第 %d 项的班次存在没有提交结果的天数", i+1)
-		}
-
+	for _, resultShift := range result.Shifts {
+		// 找到模板中对应的班次
 		var templateShift *domain.ScheduleTemplateShift = nil
 
 		for _, shift := range template.Shifts {
@@ -111,16 +108,31 @@ func ValidateSchedulingResultWithTemplate(result *domain.SchedulingResult, templ
 		}
 
 		if templateShift == nil {
-			return fmt.Errorf("排班结果中的第 %d 项不存在于排班模板中", i+1)
+			return fmt.Errorf("排班结果中的第 %d 项不存在于排班模板中", resultShift.ShiftID)
+		}
+
+		for _, day := range templateShift.ApplicableDays {
+			containDay := false
+
+			for _, item := range resultShift.Items {
+				if item.Day == day {
+					containDay = true
+					break
+				}
+			}
+
+			if !containDay {
+				return fmt.Errorf("排班结果中的第 %d 项的班次存在没有提交结果的天数 %d", resultShift.ShiftID, day)
+			}
 		}
 
 		for _, item := range resultShift.Items {
 			if !slices.Contains(templateShift.ApplicableDays, item.Day) {
-				return fmt.Errorf("排班结果中的第 %d 项的第 %d 天不符合模板中的班次", i+1, item.Day)
+				return fmt.Errorf("排班结果中的第 %d 项的第 %d 天不符合模板中的班次", resultShift.ShiftID, item.Day)
 			}
 			// +1 是因为负责人也算一个助理
 			if len(item.AssistantIDs)+1 > int(templateShift.RequiredAssistantNumber) {
-				return fmt.Errorf("排班结果中的第 %d 项的第 %d 天的助理人数超过了模板中的要求", i+1, item.Day)
+				return fmt.Errorf("排班结果中的第 %d 项的第 %d 天的助理人数超过了模板中的要求", resultShift.ShiftID, item.Day)
 			}
 		}
 	}
