@@ -1,0 +1,144 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER} # 数据库用户名
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD} # 数据库密码
+      - POSTGRES_DB=${POSTGRES_DB} # 数据库名称
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # 持久化数据库数据
+    healthcheck:
+      test: pg_isready
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    networks:
+      - backend
+    restart: always
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    container_name: rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER} # rabbitmq 用户名
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS} # rabbitmq 密码
+    ports:
+      - 15672:15672 # rabbitmq 管理面板端口
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq # 持久化 rabbitmq 数据
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    networks:
+      - backend
+    restart: always
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    command:
+      - redis-server # 启动 redis
+      - --appendonly yes # 持久化 redis 数据
+      - --requirepass ${REDIS_PASSWORD} # 设置 redis 密码
+    volumes:
+      - redis_data:/data # 持久化 redis 数据
+    healthcheck:
+      test: redis-cli ping
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    networks:
+      - backend
+    restart: always
+
+  mail:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: ./bin/mail
+    container_name: mail
+    env_file:
+      - .env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - backend
+    restart: always
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        - GOOSE_MIGRATION_DIR=${GOOSE_MIGRATION_DIR}
+        - GOOSE_DBSTRING=${GOOSE_DBSTRING}
+    command: sh -c "go run cmd/seed/main.go -op 5 && goose up && ./bin/api" # seed 只做演示使用，后面真正部署的时候要删除
+    container_name: api
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - backend
+    restart: always
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.api.rule=Host(`localhost`) && PathPrefix(`/api`)
+      - traefik.http.services.api.loadbalancer.server.port=3000
+      - traefik.http.middlewares.api-stripprefix.stripprefix.prefixes=/api
+      - traefik.http.routers.api.middlewares=api-stripprefix
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: web
+    networks:
+      - frontend
+    restart: always
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.web.rule=Host(`localhost`)
+      - traefik.http.routers.web.entrypoints=web
+      - traefik.http.services.web.loadbalancer.server.port=80
+
+  traefik:
+    image: traefik:v3
+    container_name: traefik
+    command:
+      - --api.insecure=true # 开启 Traefik 仪表盘
+      - --providers.docker=true # 让 Traefik 自动检测 docker 服务
+      - --providers.docker.exposedbydefault=false # 默认情况下容器不会被暴露，除非配置了规则
+      - --entryPoints.web.address=:80 # 监听 HTTP 端口
+    ports:
+      - 80:80 # 监听 HTTP 端口
+      - 8080:8080 # 监听 Traefik 仪表盘端口
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro # 让 Traefik 连接到 docker 服务
+    networks:
+      - frontend
+      - backend
+    restart: always
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+  redis_data:
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
