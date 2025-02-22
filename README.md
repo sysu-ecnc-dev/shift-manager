@@ -15,7 +15,19 @@ git clone https://github.com/sysu-ecnc-dev/shift-manager.git
 cd shift-manager
 ```
 
-2. 启动服务（相关的启动命令将在开发完成后给出）。
+2. 复制配置文件并补充其中空缺的配置项：
+
+```bash
+cp .env.example .env
+```
+
+3. 使用 docker 在本地快速启动服务：
+
+```bash
+docker compose up -d
+```
+
+4. 在浏览器中输入 [http://localhost](http://localhost) 即可看到排班系统的 web 页面。
 
 ## 参与开发
 
