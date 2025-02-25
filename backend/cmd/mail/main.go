@@ -193,13 +193,16 @@ func main() {
 				}
 
 				// 发送邮件
-				if err := client.DialAndSend(mail); err != nil {
+				sendCtx, sendCancel := context.WithTimeout(context.Background(), time.Duration(cfg.Email.SMTP.DialTimeout)*time.Second)
+				defer sendCancel()
+				if err := client.DialAndSendWithContext(sendCtx, mail); err != nil {
 					logger.Error("邮件发送失败", slog.String("error", err.Error()))
 					_ = msg.Nack(false, true) // 将消息重新入队
 					continue
 				}
 
-				// 确认消息
+				// 发送成功，确认消息
+				logger.Info(mailMessage.Type + "邮件已发送至" + mailMessage.To)
 				_ = msg.Ack(false)
 			}
 		}
