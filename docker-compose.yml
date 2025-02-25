@@ -2,10 +2,8 @@ services:
   postgres:
     image: postgres:17-alpine
     container_name: postgres
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER} # 数据库用户名
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD} # 数据库密码
-      - POSTGRES_DB=${POSTGRES_DB} # 数据库名称
+    env_file:
+      - .env
     volumes:
       - postgres_data:/var/lib/postgresql/data # 持久化数据库数据
     healthcheck:
@@ -15,15 +13,14 @@ services:
       retries: 5
       start_period: 10s
     networks:
-      - backend
+      - default
     restart: always
 
   rabbitmq:
     image: rabbitmq:4-management-alpine
     container_name: rabbitmq
-    environment:
-      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER} # rabbitmq 用户名
-      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS} # rabbitmq 密码
+    env_file:
+      - .env
     ports:
       - 15672:15672 # rabbitmq 管理面板端口
     volumes:
@@ -35,16 +32,17 @@ services:
       retries: 5
       start_period: 10s
     networks:
-      - backend
+      - default
     restart: always
 
   redis:
     image: redis:7-alpine
     container_name: redis
+    env_file:
+      - .env # 设置 redis 密码
     command:
       - redis-server # 启动 redis
       - --appendonly yes # 持久化 redis 数据
-      - --requirepass ${REDIS_PASSWORD} # 设置 redis 密码
     volumes:
       - redis_data:/data # 持久化 redis 数据
     healthcheck:
@@ -54,33 +52,14 @@ services:
       retries: 5
       start_period: 10s
     networks:
-      - backend
+      - default
     restart: always
 
-  mail:
+  backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: ./bin/mail
-    container_name: mail
-    env_file:
-      - .env
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-    networks:
-      - backend
-    restart: always
-
-  api:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-      args:
-        - GOOSE_MIGRATION_DIR=${GOOSE_MIGRATION_DIR}
-        - GOOSE_DBSTRING=${GOOSE_DBSTRING}
-    command: sh -c "go run cmd/seed/main.go -op 5 && goose up && ./bin/api" # seed 只做演示使用，后面真正部署的时候要删除
-    container_name: api
+    container_name: backend
     env_file:
       - .env
     depends_on:
@@ -91,28 +70,31 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - backend
+      - default
     restart: always
     labels:
       - traefik.enable=true
-      - traefik.http.routers.api.rule=Host(`${DOMAIN}`) && PathPrefix(`/api`)
-      - traefik.http.services.api.loadbalancer.server.port=3000
-      - traefik.http.middlewares.api-stripprefix.stripprefix.prefixes=/api
-      - traefik.http.routers.api.middlewares=api-stripprefix
+      - traefik.http.routers.backend.rule=Host(`${DOMAIN}`) && PathPrefix(`/api`)
+      - traefik.http.middlewares.backend-stripprefix.stripprefix.prefixes=/api
+      - traefik.http.routers.backend.middlewares=backend-stripprefix
+      - traefik.http.routers.backend.entrypoints=websecure
+      - traefik.http.routers.backend.tls.certresolver=le
+      - traefik.http.services.backend.loadbalancer.server.port=3000
 
-  web:
+  frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: web
+    container_name: frontend
     networks:
-      - frontend
+      - default
     restart: always
     labels:
       - traefik.enable=true
-      - traefik.http.routers.web.rule=Host(`${DOMAIN}`)
-      - traefik.http.routers.web.entrypoints=web
-      - traefik.http.services.web.loadbalancer.server.port=80
+      - traefik.http.routers.frontend.rule=Host(`${DOMAIN}`)
+      - traefik.http.routers.frontend.entrypoints=websecure
+      - traefik.http.routers.frontend.tls.certresolver=le
+      - traefik.http.services.frontend.loadbalancer.server.port=80
 
   traefik:
     image: traefik:v3
@@ -122,14 +104,26 @@ services:
       - --providers.docker=true # 让 Traefik 自动检测 docker 服务
       - --providers.docker.exposedbydefault=false # 默认情况下容器不会被暴露，除非配置了规则
       - --entryPoints.web.address=:80 # 监听 HTTP 端口
+      - --entryPoints.websecure.address=:443 # 监听 HTTPS 端口
+      - --entryPoints.web.http.redirections.entryPoint.to=websecure
+      - --entryPoints.web.http.redirections.entryPoint.scheme=https
+      - --certificatesresolvers.le.acme.dnschallenge=true
+      - --certificatesresolvers.le.acme.dnschallenge.provider=alidns # 域名的 DNS 运营商
+      - --certificatesresolvers.le.acme.email=80118151@qq.com
+      - --certificatesresolvers.le.acme.storage=/acme/acme.json
+      - --accesslog=true  # dev
+      # - --accesslog.format=json
+    env_file:
+      - .env # 传递 DNS API
     ports:
+      - 443:443 # 监听 HTTPS 端口
       - 80:80 # 监听 HTTP 端口
       - 8080:8080 # 监听 Traefik 仪表盘端口
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro # 让 Traefik 连接到 docker 服务
+      - ./acme:/acme # 证书存储目录
     networks:
-      - frontend
-      - backend
+      - default
     restart: always
 
 volumes:
@@ -138,7 +132,10 @@ volumes:
   redis_data:
 
 networks:
-  frontend:
-    driver: bridge
-  backend:
-    driver: bridge
+  default:
+    ipam:
+      # 避免和校园网网段(172.12.0.0/16)冲突
+      driver: default
+      config:
+        - subnet: 192.168.114.0/24
+          gateway: 192.168.114.1

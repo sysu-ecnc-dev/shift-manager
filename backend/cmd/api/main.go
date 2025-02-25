@@ -22,6 +22,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgconn"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/pressly/goose/v3"
 )
 
 func main() {
@@ -64,6 +65,14 @@ func main() {
 	}
 
 	/**********************************************
+	 * migrate
+	 **********************************************/
+	if err := goose.Up(dbpool, cfg.Database.Migrations_dir); err != nil {
+		logger.Error("执行数据库迁移失败", "error", err)
+		return
+	}
+
+	/**********************************************
 	 * 创建 repository
 	 **********************************************/
 	repo := repository.NewRepository(cfg, dbpool)
@@ -89,7 +98,7 @@ func main() {
 		case errors.As(err, &pgErr):
 			switch pgErr.ConstraintName {
 			case "users_username_key":
-				// 如果返回这个错误，说明数据库中已经存在初始管理员，不处理
+				// 数据库中已经存在初始管理员
 			default:
 				logger.Error("无法创建初始管理员", "error", err)
 				return
@@ -99,6 +108,8 @@ func main() {
 			return
 		}
 	}
+	logger.Info("users 初始管理员: " + cfg.InitialAdmin.Username)
+	logger.Info("数据库初始化完成")
 
 	/**********************************************
 	 * 连接 rabbitmq
