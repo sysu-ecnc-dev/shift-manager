@@ -77,6 +77,9 @@ importers:
       '@tanstack/router-plugin':
         specifier: ^1.98.0
         version: 1.98.0(@tanstack/react-router@1.98.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(vite@6.0.11(@types/node@22.12.0)(jiti@1.21.7)(tsx@4.19.2)(yaml@2.7.0))
+      '@types/node':
+        specifier: ^22.12.0
+        version: 22.12.0
       '@types/react':
         specifier: ^18.3.18
         version: 18.3.18
@@ -144,7 +147,7 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.17)
       typescript:
-        specifier: ~5.6.2
+        specifier: ~5.6.3
         version: 5.6.3
       vite:
         specifier: ^6.0.5
@@ -162,9 +165,6 @@ importers:
       '@tanstack/eslint-plugin-query':
         specifier: ^5.65.0
         version: 5.65.0(eslint@9.19.0(jiti@1.21.7))(typescript@5.6.3)
-      '@types/node':
-        specifier: ^22.12.0
-        version: 22.12.0
       eslint:
         specifier: ^9.17.0
         version: 9.19.0(jiti@1.21.7)

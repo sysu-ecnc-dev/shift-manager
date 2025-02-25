@@ -4,8 +4,8 @@ RUN corepack enable
 
 WORKDIR /app
 
-COPY pnpm-lock.yaml .
-RUN pnpm fetch --prod
+COPY pnpm-lock.yaml package.json ./
+RUN pnpm install
 
 COPY . .
 RUN pnpm run build
