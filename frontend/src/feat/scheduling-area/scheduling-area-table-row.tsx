@@ -20,8 +20,10 @@ export default function SchedulingAreaTableRow({
   return (
     <div className="grid grid-cols-8 divide-x divide-border">
       {/* 班次情况 */}
-      <div className="flex items-center justify-center">
-        {templateShift.startTime}~{templateShift.endTime}
+      <div className="grid grid-rows-9 text-center">
+        <div className="row-start-4">{templateShift.startTime}</div>
+        <div className="row-start-5">~</div>
+        <div className="row-start-6">{templateShift.endTime}</div>
       </div>
 
       {/* 每天的排班情况 */}

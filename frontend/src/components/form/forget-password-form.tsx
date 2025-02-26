@@ -176,7 +176,7 @@ export default function ForgetPasswordForm() {
       </div>
       <Separator className="my-2" />
       <div className="text-center text-sm text-muted-foreground">
-        用户名对应的邮箱邮箱默认是你的中山大学邮箱
+        用户名对应的邮箱默认是你的中山大学邮箱
       </div>
     </form>
   );

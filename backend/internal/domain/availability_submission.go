@@ -11,6 +11,7 @@ type AvailabilitySubmission struct {
 	ID             int64                        `json:"id"`
 	SchedulePlanID int64                        `json:"schedulePlanID"`
 	UserID         int64                        `json:"userID"`
+	Username       string                       `json:"username"`
 	Items          []AvailabilitySubmissionItem `json:"items"`
 	CreatedAt      time.Time                    `json:"createdAt"`
 	Version        int32                        `json:"-"`

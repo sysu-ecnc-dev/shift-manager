@@ -17,6 +17,7 @@ type Config struct {
 	} `envPrefix:"SERVER_"`
 	Database struct {
 		DSN                string `env:"DSN,required"`
+		Migrations_dir     string `env:"MIGRATIONS_DIR,required"`
 		ConnectTimeout     int    `env:"CONNECT_TIMEOUT" envDefault:"10"`
 		QueryTimeout       int    `env:"QUERY_TIMEOUT" envDefault:"10"`
 		TransactionTimeout int    `env:"TRANSACTION_TIMEOUT" envDefault:"20"`

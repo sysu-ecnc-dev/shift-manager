@@ -305,13 +305,13 @@ func (h *Handler) SubmitSchedulingResult(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if err := utils.ValidateSchedulingResultWithSubmissions(schedulingResult, submissions); err != nil {
+	if err := utils.ValidateSchedulingResultWithSubmissions(schedulingResult, submissions, template, h.repository); err != nil {
 		h.badRequest(w, r, err)
 		return
 	}
 
 	// 最后要检查是否存在重复的助理
-	if err := utils.ValidIfExistsDuplicateAssistant(schedulingResult); err != nil {
+	if err := utils.ValidIfExistsDuplicateAssistant(schedulingResult, template, h.repository); err != nil {
 		h.badRequest(w, r, err)
 		return
 	}
@@ -401,8 +401,21 @@ func (h *Handler) GenerateSchedulingResult(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	res, err := scheduler.Schedule()
-	if err != nil {
+	res := scheduler.Schedule()
+
+	// 还需要检查一下结果是否满足约束条件（调用 validate 包中的方法就可以了）
+	schedulingResult := &domain.SchedulingResult{
+		Shifts: make([]domain.SchedulingResultShift, len(res)),
+	}
+	for i, shift := range res {
+		schedulingResult.Shifts[i] = *shift
+	}
+
+	if err := utils.ValidateSchedulingResultWithSubmissions(schedulingResult, submissions, template, h.repository); err != nil {
+		h.internalServerError(w, r, err)
+		return
+	}
+	if err := utils.ValidIfExistsDuplicateAssistant(schedulingResult, template, h.repository); err != nil {
 		h.internalServerError(w, r, err)
 		return
 	}
