@@ -29,7 +29,7 @@ export default function SchedulingAreaDragOverlay() {
 
   return (
     <DragOverlay>
-      <Badge className="flex items-center gap-1 text-md cursor-grab text-md">
+      <Badge className="flex items-center gap-1 text-md cursor-grab">
         {roleIcons[activeUser.role]}
         <span>{activeUser.fullName}</span>
         <span>({assignedHours})</span>

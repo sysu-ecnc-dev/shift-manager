@@ -50,14 +50,14 @@ export default function SchedulingAreaTable({
   return (
     <div
       className={cn(
-        "mt-2 border-2 border-border rounded-md grid divide-y divide-border",
+        "mt-2 border-2 border-border rounded-md grid divide-y divide-border overflow-x-scroll",
         className
       )}
     >
       {/* 展示星期 */}
-      <div className="grid grid-cols-8 font-bold text-center divide-x divide-border">
+      <div className="grid grid-cols-8 font-bold text-center divide-x divide-border min-w-[1100px]">
         {[{ key: 0, label: "班次" }, ...DayOfWeek].map((day) => (
-          <div key={day.key} className="py-2">
+          <div key={day.key} className="py-2 min-w-[130px]">
             {day.label}
           </div>
         ))}
@@ -70,15 +70,11 @@ export default function SchedulingAreaTable({
             (shift) => shift.shiftID === scheduleTemplateShift.id
           );
 
-          if (resultShift === undefined) {
-            return null;
-          }
-
           return (
             <SchedulingAreaTableRow
               key={scheduleTemplateShift.id}
               templateShift={scheduleTemplateShift}
-              resultShift={resultShift}
+              resultShift={resultShift ? resultShift : { shiftID: scheduleTemplateShift.id, items: [] }}
               schedulePlan={schedulePlan}
             />
           );

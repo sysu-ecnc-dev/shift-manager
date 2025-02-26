@@ -70,7 +70,7 @@ export default function SchedulingAreaUsers({
 
   return (
     <div
-      className={cn(className, "border-2 border-border rounded-md mt-2 p-2")}
+      className={cn(className, "border-2 border-border rounded-md mt-2 p-2 min-w-[130px]")}
     >
       {/* 排班基本情况 */}
       <div className="flex items-center gap-2 text-lg mb-2">

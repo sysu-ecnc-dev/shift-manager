@@ -7,7 +7,6 @@ import (
 	"sort"
 
 	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/domain"
-	"github.com/sysu-ecnc-dev/shift-manager/backend/internal/utils"
 )
 
 type Scheduler struct {
@@ -68,7 +67,7 @@ func New(parameters *Parameters, users []*domain.User, template *domain.Schedule
 	return s, nil
 }
 
-func (s *Scheduler) Schedule() ([]*domain.SchedulingResultShift, error) {
+func (s *Scheduler) Schedule() []*domain.SchedulingResultShift {
 	// 生成初始种群
 	pop := make([]*Chromosome, s.parameters.PopulationSize)
 	for i := 0; i < int(s.parameters.PopulationSize); i++ {
@@ -167,20 +166,5 @@ func (s *Scheduler) Schedule() ([]*domain.SchedulingResultShift, error) {
 		})
 	}
 
-	// 还需要检查一下结果是否满足约束条件（调用 validate 包中的方法就可以了）
-	schedulingResult := &domain.SchedulingResult{
-		Shifts: make([]domain.SchedulingResultShift, len(result)),
-	}
-	for i, shift := range result {
-		schedulingResult.Shifts[i] = *shift
-	}
-
-	if err := utils.ValidateSchedulingResultWithSubmissions(schedulingResult, s.submissions); err != nil {
-		return nil, err
-	}
-	if err := utils.ValidIfExistsDuplicateAssistant(schedulingResult); err != nil {
-		return nil, err
-	}
-
-	return result, nil
+	return result
 }

@@ -1,4 +1,4 @@
-import { Badge } from "@/components/ui/badge";
+import { BadgeRemovable } from "@/components/ui/badge-removable";
 import {
   getScheduleTemplateQueryOptions,
   getUsersQueryOptions,
@@ -22,6 +22,7 @@ interface Props {
   index?: number;
   schedulingResultShiftItem: SchedulingResultShiftItem;
   schedulePlan: SchedulePlan;
+  onRemoveBadge: () => void;
 }
 
 export default function SchedulingAreaTableRowCellItem({
@@ -31,6 +32,7 @@ export default function SchedulingAreaTableRowCellItem({
   index,
   schedulingResultShiftItem,
   schedulePlan,
+  onRemoveBadge,
 }: Props) {
   const { setNodeRef, active, isOver } = useDroppable({
     id: isPrincipal
@@ -74,14 +76,14 @@ export default function SchedulingAreaTableRowCellItem({
     <div
       ref={setNodeRef}
       className={cn(
-        "border-2 border-border rounded-md flex items-center justify-center py-2",
+        "border-2 border-border rounded-md flex items-center justify-center py-2 text-md",
         isAllowed && "bg-chart-2",
         isOver && isAllowed && "bg-primary"
       )}
     >
       {isPrincipal ? (
         schedulingResultShiftItem.principalID !== null ? (
-          <Badge className="flex items-center gap-1 text-md">
+          <BadgeRemovable onRemove={onRemoveBadge} className="flex items-center gap-1 text-md">
             <CrownIcon className="w-4 h-4" />
             <span className="whitespace-nowrap">
               {
@@ -99,13 +101,13 @@ export default function SchedulingAreaTableRowCellItem({
               )}
               )
             </span>
-          </Badge>
+          </BadgeRemovable>
         ) : (
           <span className="text-muted-foreground">缺少负责人</span>
         )
       ) : index !== undefined &&
         schedulingResultShiftItem.assistantIDs.at(index) !== undefined ? (
-        <Badge className="text-md flex items-center gap-1">
+        <BadgeRemovable onRemove={onRemoveBadge} className="text-md flex items-center gap-1">
           <UserIcon className="w-4 h-4" />
           <span className="whitespace-nowrap">
             {
@@ -124,7 +126,7 @@ export default function SchedulingAreaTableRowCellItem({
             )}
             )
           </span>
-        </Badge>
+        </BadgeRemovable>
       ) : (
         <span className="text-muted-foreground">缺少助理</span>
       )}
